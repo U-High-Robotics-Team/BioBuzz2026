@@ -52,7 +52,7 @@ public class UtilityTestGamepad extends OpMode {
     }
 
     void display_gamepad(Gamepad gamepad, String name) {
-        telemetry.addLine("---" + name + "---");
+        telemetry.addLine(name);
         telemetry.addData("Left Joystick",  "(% 1.2f, %1.2f)", gamepad.left_stick_x, gamepad.left_stick_y);
         telemetry.addData("Left Trigger", "% 1.2f", gamepad.left_trigger);
         telemetry.addData("Right Joystick",  "(% 1.2f, %1.2f)", gamepad.right_stick_x, gamepad.right_stick_y);
@@ -89,49 +89,49 @@ public class UtilityTestGamepad extends OpMode {
       This returns a string based off of the buttons pressed, with the xbox names for buttons
      */
     String xbox_buttons_to_string(Gamepad gamepad){
-        String buttons = generic_buttons_to_string(gamepad);
-        if (gamepad.back) buttons += "back" + SEPARATOR;
-        if (gamepad.start) buttons += "start" + SEPARATOR;
-        if (gamepad.guide) buttons += "guide" + SEPARATOR;
-        if (gamepad.a) buttons += "a" + SEPARATOR;
-        if (gamepad.b) buttons += "b" + SEPARATOR;
-        if (gamepad.x) buttons += "x" + SEPARATOR;
-        if (gamepad.y) buttons += "y" + SEPARATOR;
+        StringBuilder buttons = new StringBuilder(generic_buttons_to_string(gamepad));
+        if (gamepad.back) buttons.append("back").append(SEPARATOR);
+        if (gamepad.start) buttons.append("start").append(SEPARATOR);
+        if (gamepad.guide) buttons.append("guide").append(SEPARATOR);
+        if (gamepad.a) buttons.append("a").append(SEPARATOR);
+        if (gamepad.b) buttons.append("b").append(SEPARATOR);
+        if (gamepad.x) buttons.append("x").append(SEPARATOR);
+        if (gamepad.y) buttons.append("y").append(SEPARATOR);
 
-        return buttons;
+        return buttons.toString();
     }
 
     /*
       This returns a string based off of the buttons pressed, with the ps names for buttons
      */
     String ps_buttons_to_string(Gamepad gamepad){
-        String buttons = generic_buttons_to_string(gamepad);
-        if (gamepad.cross) buttons += "cross" + SEPARATOR;
-        if (gamepad.circle) buttons += "circle" + SEPARATOR;
-        if (gamepad.square) buttons += "square" + SEPARATOR;
-        if (gamepad.triangle) buttons += "triangle" + SEPARATOR;
-        if (gamepad.ps) buttons += "ps" + SEPARATOR;
-        if (gamepad.share) buttons += "share" + SEPARATOR;
-        if (gamepad.options) buttons += "options" + SEPARATOR;
-        if (gamepad.touchpad) buttons += "touchpad" + SEPARATOR;
+        StringBuilder buttons = new StringBuilder(generic_buttons_to_string(gamepad));
+        if (gamepad.cross) buttons.append("cross").append(SEPARATOR);
+        if (gamepad.circle) buttons.append("circle").append(SEPARATOR);
+        if (gamepad.square) buttons.append("square").append(SEPARATOR);
+        if (gamepad.triangle) buttons.append("triangle").append(SEPARATOR);
+        if (gamepad.ps) buttons.append("ps").append(SEPARATOR);
+        if (gamepad.share) buttons.append("share").append(SEPARATOR);
+        if (gamepad.options) buttons.append("options").append(SEPARATOR);
+        if (gamepad.touchpad) buttons.append("touchpad").append(SEPARATOR);
 
-        return buttons;
+        return buttons.toString();
     }
 
     /*
       This returns the buttons pressed for those that are the same on both types of gamepads
      */
     String generic_buttons_to_string(Gamepad gamepad){
-        String buttons = "";
-        if (gamepad.dpad_up) buttons += "dpad_up" + SEPARATOR;
-        if (gamepad.dpad_down) buttons += "dpad_down" + SEPARATOR;
-        if (gamepad.dpad_left) buttons += "dpad_left" + SEPARATOR;
-        if (gamepad.dpad_right) buttons += "dpad_right" + SEPARATOR;
-        if (gamepad.left_bumper) buttons += "left_bumper" + SEPARATOR;
-        if (gamepad.right_bumper) buttons += "right_bumper" + SEPARATOR;
-        if (gamepad.left_stick_button) buttons += "left stick button" + SEPARATOR;
-        if (gamepad.right_stick_button) buttons += "right stick button" + SEPARATOR;
-        return buttons;
+        StringBuilder buttons = new StringBuilder();
+        if (gamepad.dpad_up) buttons.append("dpad_up").append(SEPARATOR);
+        if (gamepad.dpad_down) buttons.append("dpad_down").append(SEPARATOR);
+        if (gamepad.dpad_left) buttons.append("dpad_left").append(SEPARATOR);
+        if (gamepad.dpad_right) buttons.append("dpad_right").append(SEPARATOR);
+        if (gamepad.left_bumper) buttons.append("left_bumper").append(SEPARATOR);
+        if (gamepad.right_bumper) buttons.append("right_bumper").append(SEPARATOR);
+        if (gamepad.left_stick_button) buttons.append("left stick button").append(SEPARATOR);
+        if (gamepad.right_stick_button) buttons.append("right stick button").append(SEPARATOR);
+        return buttons.toString();
     }
 
 }

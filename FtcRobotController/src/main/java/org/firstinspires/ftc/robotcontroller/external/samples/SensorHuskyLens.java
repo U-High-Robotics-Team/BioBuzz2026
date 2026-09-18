@@ -93,7 +93,7 @@ public class SensorHuskyLens extends LinearOpMode {
          * call to knock() failed.
          */
         if (!huskyLens.knock()) {
-            telemetry.addData(">>", "Problem communicating with " + huskyLens.getDeviceName());
+            telemetry.addData(">>", "Problem communicating with %s", huskyLens.getDeviceName());
         } else {
             telemetry.addData(">>", "Press start to continue");
         }

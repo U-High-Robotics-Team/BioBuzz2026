@@ -94,7 +94,7 @@ public class SensorOctoQuadAdv extends LinearOpMode {
         OctoSwerveDrive octoSwerveDrive = new OctoSwerveDrive(octoquad);
 
         // Display the OctoQuad firmware revision
-        telemetry.addLine("OctoQuad Firmware v" + octoquad.getFirmwareVersion());
+        telemetry.addLine(String.format("OctoQuad Firmware v%s", octoquad.getFirmwareVersion()));
         telemetry.addLine("\nPress START to read encoder values");
         telemetry.update();
 
