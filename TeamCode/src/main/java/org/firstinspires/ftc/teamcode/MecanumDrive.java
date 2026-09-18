@@ -6,7 +6,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 //import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-
+@SuppressWarnings("unused")
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
@@ -39,9 +39,9 @@ public class MecanumDrive {
         backRight = new MotorPowerController(hm, "backRight");
          
         frontLeft.setDirection(1);
-        frontRight.setDirection(1);
+        frontRight.setDirection(-11);
         backLeft.setDirection(-1);
-        backRight.setDirection(-1);
+        backRight.setDirection(1);
 
         odo = null;
     }
