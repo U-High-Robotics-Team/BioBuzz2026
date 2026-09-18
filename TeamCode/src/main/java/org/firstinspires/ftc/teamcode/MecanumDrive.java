@@ -74,20 +74,20 @@ public class MecanumDrive {
     }
 
     public void moveTo(double targetX, double targetY, double targetHeading) {
+        // get current position
         odo.update();
-
-        // Getting current positions
         Pose2D currentPosition = odo.getPosition();
         double currentX = currentPosition.getX(DistanceUnit.MM);
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
 
-         // Finding errors using current and targets
+         // find errors between current and target positions
         double deltaX = targetX - currentX;
         double deltaY = targetY - currentY;
         double deltaHeading = targetHeading - currentHeading;
 
-         // Accounting for minor errors
+         // ignore minor errors to prevent hunting behavior
+         // TODO test and fix these magic numbers
         if (Math.abs(deltaY) < 0.5) {
             deltaY = 0;
         }
@@ -98,8 +98,9 @@ public class MecanumDrive {
             deltaHeading = 0;
         }
 
-        double xPower = deltaX * Kp;
-        double yPower = deltaY * Kp;
+        // compute PID power levels
+        double xPower = pid(deltaX);
+        double yPower = pid(deltaY);
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
@@ -123,9 +124,9 @@ public class MecanumDrive {
         backRight.setPower(wheelPowers[3]);
     }
 
-     public double findPIDPower(double delta){
-        double out = 0;
-        // TODO write PID controller
+     public double pid(double error){
+        double out = Kp * error;
+        // TODO add integral and derivative control
         //double derivative = 0;
         //double error = 0;
 
