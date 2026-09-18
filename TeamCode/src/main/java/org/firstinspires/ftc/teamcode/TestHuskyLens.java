@@ -1,0 +1,34 @@
+@TeleOp(name = "Test HuskyLens")
+public class TestHuskyLens extends OpMode {
+
+    private HuskyLens huskyLens;
+
+    @Override
+    public void init() {
+        huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
+
+        telemetry.addLine("HuskyLens initialized");
+        telemetry.update();
+    }
+
+    @Override
+    public void loop() {
+        HuskyLens.Block[] blocks = huskyLens.blocks();
+
+        telemetry.addData("Objects Detected", blocks.length);
+
+        for (int i = 0; i < blocks.length; i++) {
+            telemetry.addData(
+                "Object " + i,
+                "x=%d y=%d width=%d height=%d ID=%d",
+                blocks[i].x,
+                blocks[i].y,
+                blocks[i].width,
+                blocks[i].height,
+                blocks[i].id
+            );
+        }
+
+        telemetry.update();
+    }
+}
