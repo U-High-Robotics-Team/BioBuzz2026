@@ -1,3 +1,9 @@
+package org.firstinspires.ftc.teamcode;
+
+import com.qualcomm.robotcore.hardware.HardwareMap;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+
 @TeleOp(name = "Test HuskyLens")
 public class TestHuskyLens extends OpMode {
 
