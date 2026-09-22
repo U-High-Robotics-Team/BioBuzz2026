@@ -3,10 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-//import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-@SuppressWarnings("unused")
+
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
@@ -20,51 +19,56 @@ public class MecanumDrive {
     private MotorPowerController frontRight;
     private MotorPowerController backLeft;
     private MotorPowerController backRight;
-    private GoBildaPinpointDriver odo;
+    private Localizer loc;
 
      /**
-     * Creates an object that controls four standard GoBilda mecanum wheels and yellowjacket gearmotors
-     * The four motors must have these names in the Driver Console hardware configureation:
-     * frontLeft, frontRight, backLeft, backRight. To use the field coordinate system for driving, 
-     * the localizer method must be a valid GoBildaPinpointDriver object. (Other types
-     * of localizers may be supported in the future.) Passing a null localizer will cause the 
-     * mecanum drive to use the local robot coordinate system where +X is robot nose 
+     * Creates an object that controls four standard GoBilda mecanum wheels and 
+     * yellowjacket gearmotors. The four motors must have these names in the 
+     * Driver Console hardware configureation:
+     * frontLeft, frontRight, backLeft, backRight. 
+     * To use the field coordinate system for driving, the localizer method must
+     * be a valid Locaizer object.
      * 
      * @param hm the hardware map inherited from OpMode (should be passed as simply 'hardwareMap') 
+     * @param loc the localizer used to report position and heading. Can be null. 
+     * If null, setPowerVector will use the local robot coordinate system where +X is robot nose.
+     * moveTo will thorw an error if called with a null localizer, since field position
+     * cannot be determined without a localizer
      */
-    public MecanumDrive(HardwareMap hm, GoBildaPinpointDriver localizer){
+    public MecanumDrive(HardwareMap hm, Localizer loc){
         frontLeft = new MotorPowerController(hm, "frontLeft");
         frontRight = new MotorPowerController(hm, "frontRight");
         backLeft = new MotorPowerController(hm, "backLeft");
         backRight = new MotorPowerController(hm, "backRight");
          
-        frontLeft.setDirection(1);
-        frontRight.setDirection(-11);
-        backLeft.setDirection(-1);
+        frontLeft.setDirection(-1);
+        frontRight.setDirection(-1);
+        backLeft.setDirection(1);
         backRight.setDirection(1);
 
-        odo = null;
+        this.loc = loc;
     }
 
     public void setPowerVector(double x, double y, double r){
         Pose2D pose = null;
         double heading = 0;
-        if (odo != null){
-            pose = odo.getPosition();
+        if (loc != null){
+            // TODO #1 figure out why this isn't working
+            pose = loc.getPosition();
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        double cosAngle = Math.cos((Math.PI / 2) - heading);
-        double sinAngle = Math.sin((Math.PI / 2) - heading);
+        double cosAngle = Math.cos((Math.PI / 2) + heading);
+        double sinAngle = Math.sin((Math.PI / 2) + heading);
 
         double globalX = x * cosAngle + y * sinAngle;
         double globalY = -x * sinAngle + y * cosAngle;
     
         double[] wheelPowers = new double[4];
 
-        wheelPowers[0] = globalX - globalY + r;
-        wheelPowers[1] = globalX - globalY - r;
-        wheelPowers[2] = globalX + globalY + r;
+        wheelPowers[0] = globalX + globalY + r;
+        wheelPowers[1] = globalX - globalY + r;
+        wheelPowers[2] = globalX - globalY - r;
         wheelPowers[3] = globalX + globalY - r;
 
         frontLeft.setPower(wheelPowers[0]);
@@ -75,8 +79,8 @@ public class MecanumDrive {
 
     public void moveTo(double targetX, double targetY, double targetHeading) {
         // get current position
-        odo.update();
-        Pose2D currentPosition = odo.getPosition();
+        loc.update();
+        Pose2D currentPosition = loc.getPosition();
         double currentX = currentPosition.getX(DistanceUnit.MM);
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
@@ -113,9 +117,9 @@ public class MecanumDrive {
 
         // Calculate individual wheel powers
         double[] wheelPowers = new double[4];
-        wheelPowers[0] = (localX - localY + turnPower);
-        wheelPowers[1] = (localX - localY - turnPower);
-        wheelPowers[2] = (localX + localY + turnPower);
+        wheelPowers[0] = (localX + localY + turnPower);
+        wheelPowers[1] = (localX - localY + turnPower);
+        wheelPowers[2] = (localX - localY - turnPower);
         wheelPowers[3] = (localX + localY - turnPower);
 
         frontLeft.setPower(wheelPowers[0]);

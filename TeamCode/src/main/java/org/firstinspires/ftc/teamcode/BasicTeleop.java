@@ -2,26 +2,23 @@ package org.firstinspires.ftc.teamcode;
 
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Basic Teleop", group="Testing")  // on the DS, opmodes are sorted by gorup, then name
+@TeleOp(name="Basic Teleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
 public class BasicTeleop extends OpMode
 {
     private ElapsedTime clock = new ElapsedTime();
     private MecanumDrive drive;
-    private GoBildaPinpointDriver odo;
+    private Localizer loc;
     
     // Code to run ONCE when the driver hits INIT
     @Override
     public void init() {
         // Initialize the hardware variables. 
-        odo = hardwareMap.get(GoBildaPinpointDriver.class, "odo");
-        odo.setOffsets(-84.0, -168.0); //these are tuned for 3110-0002-0001 Product Insight #1
-        odo.setEncoderResolution(GoBildaPinpointDriver.GoBildaOdometryPods.goBILDA_4_BAR_POD);
-        odo.setEncoderDirections(GoBildaPinpointDriver.EncoderDirection.FORWARD, GoBildaPinpointDriver.EncoderDirection.FORWARD);
-        odo.resetPosAndIMU();
-        drive = new MecanumDrive(hardwareMap, odo);
+        loc = new Localizer(hardwareMap, "gbpoc");
+        drive = new MecanumDrive(hardwareMap, loc);
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
@@ -43,8 +40,11 @@ public class BasicTeleop extends OpMode
     @Override
     public void loop() {
         // read sensors here
+        loc.update();
+        Pose2D currentLoc = loc.getPosition();
+        telemetry.addData("Current: ", currentLoc);
         double x = gamepad1.left_stick_y;
-        double y = -gamepad1.left_stick_x;
+        double y = gamepad1.left_stick_x;
         double r = gamepad1.right_stick_x;
 
         // state machine here
