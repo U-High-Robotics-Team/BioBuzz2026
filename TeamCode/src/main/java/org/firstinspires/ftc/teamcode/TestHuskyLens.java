@@ -12,6 +12,7 @@ public class TestHuskyLens extends OpMode {
     @Override
     public void init() {
         huskyLens = hardwareMap.get(HuskyLens.class, "huskylens");
+        huskyLens.selectAlgorithm(HuskyLens.Algorithm.TAG_RECOGNITION);
 
         telemetry.addLine("HuskyLens initialized");
         telemetry.update();
