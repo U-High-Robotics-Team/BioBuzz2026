@@ -41,44 +41,36 @@ public class MecanumDrive {
         backLeft = new MotorPowerController(hm, "backLeft");
         backRight = new MotorPowerController(hm, "backRight");
          
-        frontLeft.setDirection(-1);
+        frontLeft.setDirection(1);
         frontRight.setDirection(-1);
         backLeft.setDirection(1);
-        backRight.setDirection(1);
+        backRight.setDirection(-1);
 
         this.loc = loc;
     }
 
-    public void setPowerVector(double x, double y, double r){
+    public void move(double fieldX, double fieldY, double rot){
+        // first assume no availabe localization to field coordinate system
         Pose2D pose = null;
         double heading = 0;
+        // then if available, find out which way robot is heading in field coordinate system
         if (loc != null){
-            // TODO #1 figure out why this isn't working
             pose = loc.getPosition();
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        double cosAngle = Math.cos((Math.PI / 2) + heading);
-        double sinAngle = Math.sin((Math.PI / 2) + heading);
+        // rotate coordinate system 90deg (+X is forward) and adjust for field heading
+        double cosTheta = Math.cos(heading);
+        double sinTheta = Math.sin(heading);
+        // transform coordintes from commanded field coords to robot coords
+        double robotX = fieldX * cosTheta + fieldY * -sinTheta;
+        double robotY = fieldX * sinTheta + fieldY * cosTheta;
 
-        double globalX = x * cosAngle + y * sinAngle;
-        double globalY = -x * sinAngle + y * cosAngle;
-    
-        double[] wheelPowers = new double[4];
-
-        wheelPowers[0] = globalX + globalY + r;
-        wheelPowers[1] = globalX - globalY + r;
-        wheelPowers[2] = globalX - globalY - r;
-        wheelPowers[3] = globalX + globalY - r;
-
-        frontLeft.setPower(wheelPowers[0]);
-        frontRight.setPower(wheelPowers[1]);
-        backLeft.setPower(wheelPowers[2]);
-        backRight.setPower(wheelPowers[3]);
+        setPowerVectors(robotX, robotY, rot);
     }
 
     public void moveTo(double targetX, double targetY, double targetHeading) {
-        // get current position
+        // get current position & heading - throws error if no localizer
         loc.update();
         Pose2D currentPosition = loc.getPosition();
         double currentX = currentPosition.getX(DistanceUnit.MM);
@@ -92,11 +84,11 @@ public class MecanumDrive {
 
          // ignore minor errors to prevent hunting behavior
          // TODO test and fix these magic numbers
-        if (Math.abs(deltaY) < 0.5) {
-            deltaY = 0;
-        }
         if (Math.abs(deltaX) < 0.5) {
             deltaX = 0;
+        }
+        if (Math.abs(deltaY) < 0.5) {
+            deltaY = 0;
         }
         if (Math.abs(deltaHeading) < 0.001) {
             deltaHeading = 0;
@@ -115,17 +107,16 @@ public class MecanumDrive {
         double localX = xPower * cosAngle + yPower * sinAngle;
         double localY = -xPower * sinAngle + yPower * cosAngle;
 
-        // Calculate individual wheel powers
-        double[] wheelPowers = new double[4];
-        wheelPowers[0] = (localX + localY + turnPower);
-        wheelPowers[1] = (localX - localY + turnPower);
-        wheelPowers[2] = (localX - localY - turnPower);
-        wheelPowers[3] = (localX + localY - turnPower);
+        setPowerVectors(localX, localY, turnPower);
+        
+    }
 
-        frontLeft.setPower(wheelPowers[0]);
-        frontRight.setPower(wheelPowers[1]);
-        backLeft.setPower(wheelPowers[2]);
-        backRight.setPower(wheelPowers[3]);
+     private void setPowerVectors(double fwd, double strafe, double rot){
+        // see Brogan Pratt's derivation on YouTube
+        frontLeft.setPower( fwd + strafe + rot);
+        frontRight.setPower(fwd - strafe - rot);
+        backLeft.setPower(  fwd - strafe + rot);
+        backRight.setPower( fwd + strafe - rot);
     }
 
      public double pid(double error){

@@ -43,13 +43,24 @@ public class BasicTeleop extends OpMode
         loc.update();
         Pose2D currentLoc = loc.getPosition();
         telemetry.addData("Current: ", currentLoc);
-        double x = gamepad1.left_stick_y;
-        double y = gamepad1.left_stick_x;
-        double r = gamepad1.right_stick_x;
+        double x = gamepad1.left_stick_y;   // gamepad 'up' (+y) is robot +X
+        double y = -gamepad1.left_stick_x;  // gamepad 'left' (-x) is robot +y
+        double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
 
         // state machine here
         // set actuators here
-        drive.setPowerVector(x, y, r);
+        drive.move(x, y, r);
+        
+        if(gamepad1.a) {
+            drive.moveTo(0,0,0);
+            
+        }
+        if(gamepad1.b) {
+            drive.moveTo(0,50,0);
+        }
+        if(gamepad1.x) {
+            
+        }
     }
 
     // Code to run ONCE after the driver hits STOP
