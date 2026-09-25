@@ -3,10 +3,9 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
-//import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-
+@SuppressWarnings("unused")
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
@@ -20,79 +19,94 @@ public class MecanumDrive {
     private MotorPowerController frontRight;
     private MotorPowerController backLeft;
     private MotorPowerController backRight;
-    private GoBildaPinpointDriver odo;
+    private Localizer loc;
 
      /**
-     * Creates an object that controls four standard GoBilda mecanum wheels and yellowjacket gearmotors
-     * The four motors must have these names in the Driver Console hardware configureation:
-     * frontLeft, frontRight, backLeft, backRight. To use the field coordinate system for driving, 
-     * the localizer method must be a valid GoBildaPinpointDriver object. (Other types
-     * of localizers may be supported in the future.) Passing a null localizer will cause the 
-     * mecanum drive to use the local robot coordinate system where +X is robot nose 
+     * Creates an object that controls four standard GoBilda mecanum wheels and 
+     * yellowjacket gearmotors. The four motors must have these names in the 
+     * Driver Console hardware configureation:
+     * frontLeft, frontRight, backLeft, backRight. 
+     * To use the field coordinate system for driving, the localizer method must
+     * be a valid Locaizer object.
      * 
      * @param hm the hardware map inherited from OpMode (should be passed as simply 'hardwareMap') 
+     * @param loc the localizer used to report position and heading. Can be null. 
+     * If null, setPowerVector will use the local robot coordinate system where +X is robot nose.
+     * moveTo will thorw an error if called with a null localizer, since field position
+     * cannot be determined without a localizer
      */
-    public MecanumDrive(HardwareMap hm, GoBildaPinpointDriver localizer){
+    public MecanumDrive(HardwareMap hm, Localizer loc){
         frontLeft = new MotorPowerController(hm, "frontLeft");
         frontRight = new MotorPowerController(hm, "frontRight");
         backLeft = new MotorPowerController(hm, "backLeft");
         backRight = new MotorPowerController(hm, "backRight");
          
         frontLeft.setDirection(1);
-        frontRight.setDirection(1);
-        backLeft.setDirection(-1);
+        frontRight.setDirection(-1);
+        backLeft.setDirection(1);
         backRight.setDirection(-1);
 
-        odo = null;
+        this.loc = loc;
     }
 
-    public void setPowerVector(double x, double y, double r){
+    /**
+     * Moves the robot with the specified power level in x, y, and rotation
+     * Power level is equivalent to speed in most cases, so this provides good manual control using a joystick
+     * The robot will move in the field coordinate system if a localizer is defined
+     * If no localizer is defined, then the robot will move using its own coordinate system
+     * @param fieldX the power level to be applied in the field +X direection from -1.0 to 1.0
+     * @param fieldY the power level to be applied in the field +Y direection from -1.0 to 1.0
+     * @param rot the power level to be applied to counterclockwise rotation from -1.0 to 1.0
+     */
+    public void move(double fieldX, double fieldY, double rot){
+        // first assume no availabe localization to field coordinate system
         Pose2D pose = null;
         double heading = 0;
-        if (odo != null){
-            pose = odo.getPosition();
+        // then if available, find out which way robot is heading in field coordinate system
+        if (loc != null){
+            pose = loc.getPosition();
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        double cosAngle = Math.cos((Math.PI / 2) - heading);
-        double sinAngle = Math.sin((Math.PI / 2) - heading);
+        // transform coordintes from commanded field coords to robot coords
+        // (rotational transform matrix)
+        double cosTheta = Math.cos(heading);
+        double sinTheta = Math.sin(heading);
+        double robotX = fieldX * cosTheta + fieldY * -sinTheta;
+        double robotY = fieldX * sinTheta + fieldY * cosTheta;
 
-        double globalX = x * cosAngle + y * sinAngle;
-        double globalY = -x * sinAngle + y * cosAngle;
-    
-        double[] wheelPowers = new double[4];
-
-        wheelPowers[0] = globalX - globalY + r;
-        wheelPowers[1] = globalX - globalY - r;
-        wheelPowers[2] = globalX + globalY + r;
-        wheelPowers[3] = globalX + globalY - r;
-
-        frontLeft.setPower(wheelPowers[0]);
-        frontRight.setPower(wheelPowers[1]);
-        backLeft.setPower(wheelPowers[2]);
-        backRight.setPower(wheelPowers[3]);
+        setPowerVectors(robotX, robotY, rot);
     }
 
+    /**
+     * Moves the robot toward the specified target point and heading in field coordinates
+     * This method is meant to be called rapidly in a loop so that progress toward the target
+     * is continually monitored and adjusted
+     * @param targetX the targeted field X position in mm
+     * @param targetY the targeted field Y position in mm
+     * @param targetHeading the targeted heading in radians CCW from the +x axis
+     */
+    // TODO return a boolean indicating whether target has been reached
     public void moveTo(double targetX, double targetY, double targetHeading) {
-        // get current position
-        odo.update();
-        Pose2D currentPosition = odo.getPosition();
+        // get current position & heading - throws error if no localizer
+        loc.update();
+        Pose2D currentPosition = loc.getPosition();
         double currentX = currentPosition.getX(DistanceUnit.MM);
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
 
-         // find errors between current and target positions
+         // find errors between current and target field positions
         double deltaX = targetX - currentX;
         double deltaY = targetY - currentY;
         double deltaHeading = targetHeading - currentHeading;
 
          // ignore minor errors to prevent hunting behavior
          // TODO test and fix these magic numbers
-        if (Math.abs(deltaY) < 0.5) {
-            deltaY = 0;
-        }
         if (Math.abs(deltaX) < 0.5) {
             deltaX = 0;
+        }
+        if (Math.abs(deltaY) < 0.5) {
+            deltaY = 0;
         }
         if (Math.abs(deltaHeading) < 0.001) {
             deltaHeading = 0;
@@ -101,27 +115,26 @@ public class MecanumDrive {
         // compute PID power levels
         double xPower = pid(deltaX);
         double yPower = pid(deltaY);
+        // TODO figure out if headings are consistent in being CCW 
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
-        double cosAngle = Math.cos(-currentHeading);
-        double sinAngle = Math.sin(-currentHeading);
+        // transform coordintes from commanded field coords to robot coords
+        // (rotational transform matrix)
+        double cosTheta = Math.cos(-currentHeading);
+        double sinTheta = Math.sin(-currentHeading);
+        double robotX = xPower * cosTheta + yPower * -sinTheta;
+        double robotY = xPower * sinTheta + yPower * cosTheta;
 
-        // Use inverse rotational matrix
-        double localX = xPower * cosAngle + yPower * sinAngle;
-        double localY = -xPower * sinAngle + yPower * cosAngle;
+        setPowerVectors(robotX, robotY, turnPower);
+    }
 
-        // Calculate individual wheel powers
-        double[] wheelPowers = new double[4];
-        wheelPowers[0] = (localX - localY + turnPower);
-        wheelPowers[1] = (localX - localY - turnPower);
-        wheelPowers[2] = (localX + localY + turnPower);
-        wheelPowers[3] = (localX + localY - turnPower);
-
-        frontLeft.setPower(wheelPowers[0]);
-        frontRight.setPower(wheelPowers[1]);
-        backLeft.setPower(wheelPowers[2]);
-        backRight.setPower(wheelPowers[3]);
+     private void setPowerVectors(double fwd, double strafe, double rot){
+        // see Brogan Pratt's derivation on YouTube
+        frontLeft.setPower( fwd + strafe + rot);
+        frontRight.setPower(fwd - strafe - rot);
+        backLeft.setPower(  fwd - strafe + rot);
+        backRight.setPower( fwd + strafe - rot);
     }
 
      public double pid(double error){
