@@ -5,7 +5,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-
+@SuppressWarnings("unused")
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
@@ -49,6 +49,15 @@ public class MecanumDrive {
         this.loc = loc;
     }
 
+    /**
+     * Moves the robot with the specified power level in x, y, and rotation
+     * Power level is equivalent to speed in most cases, so this provides good manual control using a joystick
+     * The robot will move in the field coordinate system if a localizer is defined
+     * If no localizer is defined, then the robot will move using its own coordinate system
+     * @param fieldX the power level to be applied in the field +X direection from -1.0 to 1.0
+     * @param fieldY the power level to be applied in the field +Y direection from -1.0 to 1.0
+     * @param rot the power level to be applied to counterclockwise rotation from -1.0 to 1.0
+     */
     public void move(double fieldX, double fieldY, double rot){
         // first assume no availabe localization to field coordinate system
         Pose2D pose = null;
@@ -59,16 +68,25 @@ public class MecanumDrive {
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        // rotate coordinate system 90deg (+X is forward) and adjust for field heading
+        // transform coordintes from commanded field coords to robot coords
+        // (rotational transform matrix)
         double cosTheta = Math.cos(heading);
         double sinTheta = Math.sin(heading);
-        // transform coordintes from commanded field coords to robot coords
         double robotX = fieldX * cosTheta + fieldY * -sinTheta;
         double robotY = fieldX * sinTheta + fieldY * cosTheta;
 
         setPowerVectors(robotX, robotY, rot);
     }
 
+    /**
+     * Moves the robot toward the specified target point and heading in field coordinates
+     * This method is meant to be called rapidly in a loop so that progress toward the target
+     * is continually monitored and adjusted
+     * @param targetX the targeted field X position in mm
+     * @param targetY the targeted field Y position in mm
+     * @param targetHeading the targeted heading in radians CCW from the +x axis
+     */
+    // TODO return a boolean indicating whether target has been reached
     public void moveTo(double targetX, double targetY, double targetHeading) {
         // get current position & heading - throws error if no localizer
         loc.update();
@@ -77,7 +95,7 @@ public class MecanumDrive {
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
 
-         // find errors between current and target positions
+         // find errors between current and target field positions
         double deltaX = targetX - currentX;
         double deltaY = targetY - currentY;
         double deltaHeading = targetHeading - currentHeading;
@@ -97,18 +115,18 @@ public class MecanumDrive {
         // compute PID power levels
         double xPower = pid(deltaX);
         double yPower = pid(deltaY);
+        // TODO figure out if headings are consistent in being CCW 
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
-        double cosAngle = Math.cos(-currentHeading);
-        double sinAngle = Math.sin(-currentHeading);
+        // transform coordintes from commanded field coords to robot coords
+        // (rotational transform matrix)
+        double cosTheta = Math.cos(-currentHeading);
+        double sinTheta = Math.sin(-currentHeading);
+        double robotX = xPower * cosTheta + yPower * -sinTheta;
+        double robotY = xPower * sinTheta + yPower * cosTheta;
 
-        // Use inverse rotational matrix
-        double localX = xPower * cosAngle + yPower * sinAngle;
-        double localY = -xPower * sinAngle + yPower * cosAngle;
-
-        setPowerVectors(localX, localY, turnPower);
-        
+        setPowerVectors(robotX, robotY, turnPower);
     }
 
      private void setPowerVectors(double fwd, double strafe, double rot){
