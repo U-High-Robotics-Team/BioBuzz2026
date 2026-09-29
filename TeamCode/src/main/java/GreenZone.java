@@ -69,9 +69,9 @@ import java.util.List;
  * Use Android Studio to Copy this Class, and Paste it into your team's code folder with a new name.
  * Remove or comment out the @Disabled line to add this OpMode to the Driver Station OpMode list.
  */
-@TeleOp(name = "Concept: AprilTag", group = "Concept")
+@TeleOp(name = "Convert", group = "Concept")
 
-public class AprilTagOnbot extends LinearOpMode {
+public class GreenZone extends LinearOpMode {
 
     private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
 
@@ -250,7 +250,28 @@ public class AprilTagOnbot extends LinearOpMode {
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
         telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
         telemetry.addLine("RBE = Range, Bearing & Elevation");
+
+        telemetry.addLine("");
+
+        if (isGreen()) {
+            telemetry.addLine("SHOOT");
+        } else {
+            telemetry.addLine("DON'T SHOOT");
+        }
         
     }   // end method telemetryAprilTag()
+
+
+    private boolean isGreen() {
+        double probability = 0;
+
+        //use values to determine probability of making a shot
+
+        if (probability > 0.80) {
+            return true;
+        } else {
+            return false;
+        }
+    }
 
 }   // end class
