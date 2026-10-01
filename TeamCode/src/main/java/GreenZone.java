@@ -73,7 +73,7 @@ import java.util.List;
 
 public class GreenZone extends LinearOpMode {
 
-    private static final boolean USE_WEBCAM = true;  // true for webcam, false for phone camera
+    private static final boolean USE_WEBCAM = true; // true for webcam, false for phone camera
 
     /**
      * The variable to store our instance of the AprilTag processor.
@@ -85,6 +85,11 @@ public class GreenZone extends LinearOpMode {
      */
     private VisionPortal visionPortal;
 
+    /**
+     * The variable to store our instance of the current april tag(s)
+     */
+    private AprilTagDetection targetDetection;
+
     // To find the VID/PID for a camera:
     //
     // Linux: open a terminal, run "lsusb", locate the line for your camera,
@@ -95,8 +100,10 @@ public class GreenZone extends LinearOpMode {
     // listings in the output
     //
     // Windows: open a PowerShell, run:
-    // Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -like 'USB*' } | Select-Object FriendlyName, InstanceId
-    // and locate the line for your camera. The VID and PID is listed directly in the line.
+    // Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -like 'USB*' } |
+    // Select-Object FriendlyName, InstanceId
+    // and locate the line for your camera. The VID and PID is listed directly in
+    // the line.
     static final int VENDOR_ID_SUNPLUS_INNOVATION_TECHNOLOGY = 0x1BCF;
     static final int PRODUCT_ID_ARDUCAM_OV5648 = 0x284C;
 
@@ -105,7 +112,8 @@ public class GreenZone extends LinearOpMode {
 
         // Demonstrate how to add a camera compatibility quirk
         // these can sometimes be needed if a camera behaves poorly.
-        // Quirks have no effect unless the camera you are using matches the specified VID/PID
+        // Quirks have no effect unless the camera you are using matches the specified
+        // VID/PID
         CameraCompatibilityManager.getInstance()
                 .addQuirk(
                         VENDOR_ID_SUNPLUS_INNOVATION_TECHNOLOGY,
@@ -141,7 +149,7 @@ public class GreenZone extends LinearOpMode {
         // Save more CPU resources when camera is no longer needed.
         visionPortal.close();
 
-    }   // end method runOpMode()
+    } // end method runOpMode()
 
     /**
      * Initialize the AprilTag processor.
@@ -151,30 +159,33 @@ public class GreenZone extends LinearOpMode {
         // Create the AprilTag processor.
         aprilTag = new AprilTagProcessor.Builder()
 
-            // The following default settings are available to un-comment and edit as needed.
-            //.setDrawAxes(true) // Changed in V12.0
-            //.setDrawTagOutline(true)
-            //.setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
-            //.setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
-            //.setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
-            //.setDrawCubeProjection(false)
+                // The following default settings are available to un-comment and edit as
+                // needed.
+                // .setDrawAxes(true) // Changed in V12.0
+                // .setDrawTagOutline(true)
+                // .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
+                // .setTagLibrary(AprilTagGameDatabase.getCenterStageTagLibrary())
+                // .setOutputUnits(DistanceUnit.INCH, AngleUnit.DEGREES)
+                // .setDrawCubeProjection(false)
 
-            // == CAMERA CALIBRATION ==
-            // If you do not manually specify calibration parameters, the SDK will attempt
-            // to load a predefined calibration for your camera.
-            .setLensIntrinsics(545.584, 545.584, 350.588, 223.15)
-            // ... these parameters are fx, fy, cx, cy.
+                // == CAMERA CALIBRATION ==
+                // If you do not manually specify calibration parameters, the SDK will attempt
+                // to load a predefined calibration for your camera.
+                .setLensIntrinsics(545.584, 545.584, 350.588, 223.15)
+                // ... these parameters are fx, fy, cx, cy.
 
-            .build();
+                .build();
 
         // Adjust Image Decimation to trade-off detection-range for detection-rate.
         // eg: Some typical detection data using a Logitech C920 WebCam
-        // Decimation = 1 ..  Detect 2" Tag from 10 feet away at 10 Frames per second
-        // Decimation = 2 ..  Detect 2" Tag from 6  feet away at 22 Frames per second
-        // Decimation = 3 ..  Detect 2" Tag from 4  feet away at 30 Frames Per Second (default)
-        // Decimation = 3 ..  Detect 5" Tag from 10 feet away at 30 Frames Per Second (default)
+        // Decimation = 1 .. Detect 2" Tag from 10 feet away at 10 Frames per second
+        // Decimation = 2 .. Detect 2" Tag from 6 feet away at 22 Frames per second
+        // Decimation = 3 .. Detect 2" Tag from 4 feet away at 30 Frames Per Second
+        // (default)
+        // Decimation = 3 .. Detect 5" Tag from 10 feet away at 30 Frames Per Second
+        // (default)
         // Note: Decimation can be changed on-the-fly to adapt during a match.
-        //aprilTag.setDecimation(3);
+        // aprilTag.setDecimation(3);
 
         // Create the vision portal by using a builder.
         VisionPortal.Builder builder = new VisionPortal.Builder();
@@ -182,25 +193,25 @@ public class GreenZone extends LinearOpMode {
         // Set the camera (webcam vs. built-in RC phone camera).
         if (USE_WEBCAM) {
             builder.setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"));
-            builder.setCameraResolution(new Size(640,480));
+            builder.setCameraResolution(new Size(640, 480));
             builder.setStreamFormat(VisionPortal.StreamFormat.MJPEG);
         } else {
             builder.setCamera(BuiltinCameraDirection.BACK);
         }
 
         // Choose a camera resolution. Not all cameras support all resolutions.
-        //builder.setCameraResolution(new Size(640, 480));
+        // builder.setCameraResolution(new Size(640, 480));
 
-        // Enable the RC preview (LiveView).  Set "false" to omit camera monitoring.
-        //builder.enableLiveView(true);
+        // Enable the RC preview (LiveView). Set "false" to omit camera monitoring.
+        // builder.enableLiveView(true);
 
         // Set the stream format; MJPEG uses less bandwidth than default YUY2.
-        //builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
+        // builder.setStreamFormat(VisionPortal.StreamFormat.YUY2);
 
         // Choose whether or not LiveView stops if no processors are enabled.
         // If set "true", monitor shows solid orange screen if no processors enabled.
         // If set "false", monitor shows camera view without annotations.
-        //builder.setAutoStopLiveView(false);
+        // builder.setAutoStopLiveView(false);
 
         // Set and enable the processor.
         builder.addProcessor(aprilTag);
@@ -209,15 +220,15 @@ public class GreenZone extends LinearOpMode {
         visionPortal = builder.build();
 
         // Disable or re-enable the aprilTag processor at any time.
-        //visionPortal.setProcessorEnabled(aprilTag, true);
+        // visionPortal.setProcessorEnabled(aprilTag, true);
 
-    }   // end method initAprilTag()
-
+    } // end method initAprilTag()
 
     /**
      * Add telemetry about AprilTag detections.
      */
     private void telemetryAprilTag() {
+        targetDetection = null;
 
         List<AprilTagDetection> currentDetections = aprilTag.getDetections();
         telemetry.addData("# AprilTags Detected", currentDetections.size());
@@ -229,22 +240,35 @@ public class GreenZone extends LinearOpMode {
 
                 if (singleDet.metadata != null) {
                     telemetry.addLine(String.format("\n==== (ID %d) %s", singleDet.id, singleDet.metadata.name));
-                    telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                    telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                    telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x,
+                            detection.ftcPose.y, detection.ftcPose.z));
+                    telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch,
+                            detection.ftcPose.roll, detection.ftcPose.yaw));
+                    telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range,
+                            detection.ftcPose.bearing, detection.ftcPose.elevation));
                 } else {
                     telemetry.addLine(String.format("\n==== (ID %d) Unknown", singleDet.id));
-                    telemetry.addLine(String.format("Center %6.0f %6.0f   (pixels)", singleDet.center.x, singleDet.center.y));
+                    telemetry.addLine(
+                            String.format("Center %6.0f %6.0f   (pixels)", singleDet.center.x, singleDet.center.y));
                 }
             } else {
                 AprilTagClusterDetection clusterDet = (AprilTagClusterDetection) detection;
+                targetDetection = detection;
+                /* 
+                if (Math.abs(detection.ftcPose.roll) < 90) {
+                    
+                }
+                */
                 telemetry.addLine(String.format("\n==== Tag Cluster (%s)", clusterDet.metadata.name));
                 telemetry.addLine(String.format("Percent tags found: %d", clusterDet.percentClusterFound));
-                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x, detection.ftcPose.y, detection.ftcPose.z));
-                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch, detection.ftcPose.roll, detection.ftcPose.yaw));
-                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range, detection.ftcPose.bearing, detection.ftcPose.elevation));
+                telemetry.addLine(String.format("XYZ %6.1f %6.1f %6.1f  (inch)", detection.ftcPose.x,
+                        detection.ftcPose.y, detection.ftcPose.z));
+                telemetry.addLine(String.format("PRY %6.1f %6.1f %6.1f  (deg)", detection.ftcPose.pitch,
+                        detection.ftcPose.roll, detection.ftcPose.yaw));
+                telemetry.addLine(String.format("RBE %6.1f %6.1f %6.1f  (inch, deg, deg)", detection.ftcPose.range,
+                        detection.ftcPose.bearing, detection.ftcPose.elevation));
             }
-        }   // end for() loop
+        } // end for() loop
 
         // Add "key" information to telemetry
         telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
@@ -258,20 +282,44 @@ public class GreenZone extends LinearOpMode {
         } else {
             telemetry.addLine("DON'T SHOOT");
         }
-        
-    }   // end method telemetryAprilTag()
 
+    } // end method telemetryAprilTag()
 
     private boolean isGreen() {
-        double probability = 0;
 
-        //use values to determine probability of making a shot
-
-        if (probability > 0.80) {
-            return true;
-        } else {
+        if (targetDetection == null) {
             return false;
         }
-    }
 
-}   // end class
+        double shotScore = calculateShotScore();
+        return shotScore >= 0.75;
+
+    } // end method isGreen()
+
+    private double calculateShotScore() {
+        /*
+         * These values are not final
+         * TODO - test for ideal shooting position & other numbers
+         */
+
+        double idealRange = 36; // inches
+        double idealBearing = 0; // degrees
+        double idealElevation = 20; // degrees
+
+        double rangeError = (targetDetection.ftcPose.range - idealRange) / 6.0;
+        double bearingError = (targetDetection.ftcPose.bearing - idealBearing) / 4.0;
+        double elevationError = (targetDetection.ftcPose.elevation - idealElevation) / 4.0;
+
+        double error = Math.sqrt(
+                rangeError * rangeError +
+                bearingError * bearingError +
+                elevationError * elevationError);
+
+        double k = 1; // smaller # = longer before percent drop
+
+        double score = Math.exp(-k * error * error);
+
+        return score;
+    } // end method calculateShotScore()
+
+} // end class
