@@ -1,17 +1,27 @@
 package org.firstinspires.ftc.teamcode;
 
 //import com.qualcomm.robotcore.eventloop.opmode.Disabled;
+import java.util.List;
+import java.util.ArrayList;
+import org.firstinspires.ftc.robotcore.external.State;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 @TeleOp(name="Basic Teleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
-public class BasicTeleop extends OpMode
-{
+public class BasicTeleop extends OpMode {
     private ElapsedTime clock = new ElapsedTime();
     private MecanumDrive drive;
     private Localizer loc;
+    private State currentState;
+    List<Integer> list = new ArrayList<Integer>(); // each is "x" , "y" , "h" and is where the robot should move
+    int occ; // New Variable for which occurence in the List<String> the robot should move to.
+    
+    private enum State {
+        STOP,
+        FOLLOWPATH
+    }
     
     // Code to run ONCE when the driver hits INIT
     @Override
@@ -19,6 +29,9 @@ public class BasicTeleop extends OpMode
         // Initialize the hardware variables. 
         loc = new Localizer(hardwareMap, "gbpoc");
         drive = new MecanumDrive(hardwareMap, loc);
+        currentState = State.STOP;
+        occ = 2;
+        testAdd();
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
@@ -48,19 +61,30 @@ public class BasicTeleop extends OpMode
         double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
 
         // state machine here
+        if (currentState == State.STOP){
+            if (gamepad1.y){
+                currentState = State.FOLLOWPATH;
+            }
+            if(gamepad1.x) {
+                stop();
+            }
+            drive.move(x, y, r);
+        }
+        if (currentState == State.FOLLOWPATH){
+            if((drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ))) && ((occ+3) < list.size())){ //&& ((occ+3) < list.size()-1)
+               occ+=3;
+               telemetry.addData("\nCurrent occ: " + occ , occ);
+            }else if (drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ)) && (occ == list.size()-1)){
+               currentState = State.STOP;
+            }
+            drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ));
+            if(gamepad1.x) {
+                stop();
+            }
+        }
         // set actuators here
-        drive.move(x, y, r);
+        // drive.move(x, y, r); moved under State.STOP
         
-        if(gamepad1.a) {
-            drive.moveTo(0,0,0);
-            
-        }
-        if(gamepad1.b) {
-            drive.moveTo(0,50,0);
-        }
-        if(gamepad1.x) {
-            
-        }
     }
 
     // Code to run ONCE after the driver hits STOP
@@ -69,4 +93,34 @@ public class BasicTeleop extends OpMode
     public void stop() {
     }
 
+    public void testAdd() {
+        list.add(0);
+        list.add(100);
+        list.add(0);
+        list.add(100);
+        list.add(0);
+        list.add(0);
+        list.add(0);
+        list.add(-100);
+        list.add(0);
+        list.add(-100);
+        list.add(0);
+        list.add(0);
+    }
+
 }
+/**
+ * int occ = 2; // at Start not in method loop
+ * 
+ *      if((drive.moveTo(Integer.parseInt(list.get(occ-2)) , Integer.parseInt(list.get(occ-1)) , Integer.parseInt(list.get(occ)))) && ((occ+2) < list.size()-1)){
+ *              occ+=2;
+ *       } else if (drive.moveTo(Integer.parseInt(list.get(occ-2)) , Integer.parseInt(list.get(occ-1)) , Integer.parseInt(list.get(occ))) && (occ == list.size()-1)){
+ *              currentState = State.STOP;
+ *       }
+ *      drive.moveTo(Integer.parseInt(list.get(occ-2)) , Integer.parseInt(list.get(occ-1)) , Integer.parseInt.list.get((occ)));
+ * 
+ * 
+ * Integer.parseInt()
+ * 
+ * 
+ */

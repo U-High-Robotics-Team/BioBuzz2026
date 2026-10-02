@@ -5,7 +5,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
-@SuppressWarnings("unused")
+
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
@@ -14,6 +14,8 @@ public class MecanumDrive {
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
     private double integralSum = 0;
     private double lastError = 0;
+    private double closeEnoughXY = 20; // prev 1.5
+    private double closeEnoughH = 2.0; // prev = 0.001
     
     private MotorPowerController frontLeft;
     private MotorPowerController frontRight;
@@ -49,15 +51,6 @@ public class MecanumDrive {
         this.loc = loc;
     }
 
-    /**
-     * Moves the robot with the specified power level in x, y, and rotation
-     * Power level is equivalent to speed in most cases, so this provides good manual control using a joystick
-     * The robot will move in the field coordinate system if a localizer is defined
-     * If no localizer is defined, then the robot will move using its own coordinate system
-     * @param fieldX the power level to be applied in the field +X direection from -1.0 to 1.0
-     * @param fieldY the power level to be applied in the field +Y direection from -1.0 to 1.0
-     * @param rot the power level to be applied to counterclockwise rotation from -1.0 to 1.0
-     */
     public void move(double fieldX, double fieldY, double rot){
         // first assume no availabe localization to field coordinate system
         Pose2D pose = null;
@@ -68,26 +61,17 @@ public class MecanumDrive {
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        // transform coordintes from commanded field coords to robot coords
-        // (rotational transform matrix)
+        // rotate coordinate system 90deg (+X is forward) and adjust for field heading
         double cosTheta = Math.cos(heading);
         double sinTheta = Math.sin(heading);
+        // transform coordintes from commanded field coords to robot coords
         double robotX = fieldX * cosTheta + fieldY * -sinTheta;
         double robotY = fieldX * sinTheta + fieldY * cosTheta;
 
         setPowerVectors(robotX, robotY, rot);
     }
 
-    /**
-     * Moves the robot toward the specified target point and heading in field coordinates
-     * This method is meant to be called rapidly in a loop so that progress toward the target
-     * is continually monitored and adjusted
-     * @param targetX the targeted field X position in mm
-     * @param targetY the targeted field Y position in mm
-     * @param targetHeading the targeted heading in radians CCW from the +x axis
-     */
-    // TODO return a boolean indicating whether target has been reached
-    public void moveTo(double targetX, double targetY, double targetHeading) {
+    public boolean moveTo(double targetX, double targetY, double targetHeading) {
         // get current position & heading - throws error if no localizer
         loc.update();
         Pose2D currentPosition = loc.getPosition();
@@ -95,38 +79,42 @@ public class MecanumDrive {
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
 
-         // find errors between current and target field positions
+         // find errors between current and target positions
         double deltaX = targetX - currentX;
         double deltaY = targetY - currentY;
         double deltaHeading = targetHeading - currentHeading;
 
          // ignore minor errors to prevent hunting behavior
          // TODO test and fix these magic numbers
-        if (Math.abs(deltaX) < 0.5) {
+        if (Math.abs(deltaX) < closeEnoughXY) {
             deltaX = 0;
         }
-        if (Math.abs(deltaY) < 0.5) {
+        if (Math.abs(deltaY) < closeEnoughXY) {
             deltaY = 0;
         }
-        if (Math.abs(deltaHeading) < 0.001) {
+        if (Math.abs(deltaHeading) < closeEnoughH) {
             deltaHeading = 0;
+        }
+        if((deltaX == 0) && (deltaY == 0) && (deltaHeading == 0)){
+            setPowerVectors(0,0,0);
+            return true;
         }
 
         // compute PID power levels
-        double xPower = pid(deltaX);
-        double yPower = pid(deltaY);
-        // TODO figure out if headings are consistent in being CCW 
+        double xPower = pid(deltaX + 10);
+        double yPower = pid(deltaY + 10); // added = + 10 on all y power
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
-        // transform coordintes from commanded field coords to robot coords
-        // (rotational transform matrix)
-        double cosTheta = Math.cos(-currentHeading);
-        double sinTheta = Math.sin(-currentHeading);
-        double robotX = xPower * cosTheta + yPower * -sinTheta;
-        double robotY = xPower * sinTheta + yPower * cosTheta;
+        double cosAngle = Math.cos(-currentHeading);
+        double sinAngle = Math.sin(-currentHeading);
 
-        setPowerVectors(robotX, robotY, turnPower);
+        // Use inverse rotational matrix
+        double localX = xPower * cosAngle + yPower * sinAngle;
+        double localY = -xPower * sinAngle + yPower * cosAngle;
+
+        setPowerVectors(-localX, localY, turnPower);
+        return false;
     }
 
      private void setPowerVectors(double fwd, double strafe, double rot){
