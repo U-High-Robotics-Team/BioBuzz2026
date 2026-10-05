@@ -9,15 +9,15 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Basic Teleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
-public class BasicTeleop extends OpMode {
+@TeleOp(name="testTeleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
+public class testTeleop extends OpMode {
     private ElapsedTime clock = new ElapsedTime();
     private MecanumDrive drive;
     private Localizer loc;
     private State currentState;
-    List<Integer> list = new ArrayList<Integer>(); // each is "x" , "y" , "h" and is where the robot should move
+    List<Direction> list = new ArrayList<Direction>(); // each is "x" , "y" , "h" and is where the robot should move
     int occ; // New Variable for which occurence in the List<String> the robot should move to.
-    
+    private Direction superTest;
     private enum State {
         STOP,
         FOLLOWPATH
@@ -32,7 +32,7 @@ public class BasicTeleop extends OpMode {
         currentState = State.STOP;
         occ = 2;
         testAdd();
-
+        
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
     }
@@ -71,15 +71,15 @@ public class BasicTeleop extends OpMode {
             drive.move(x, y, r);
         }
         if (currentState == State.FOLLOWPATH){
-            if((drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ))) && ((occ+3) < list.size())){ //&& ((occ+3) < list.size()-1)
-               occ+=3;
+            if((drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH)) && ((occ+1) < list.size())){ //&& ((occ+3) < list.size()-1)
+               occ++;
                telemetry.addData("\nCurrent occ: " + occ , occ);
-            }else if (drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ)) && (occ == list.size()-1)){
+            }else if (drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH()) && (occ == list.size()-1)){
                currentState = State.STOP;
             }
-            drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ));
+            drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH());
             if(gamepad1.x) {
-                stop();
+                currentState = State.STOP;
             }
         }
         // set actuators here
@@ -94,22 +94,17 @@ public class BasicTeleop extends OpMode {
     }
 
     public void testAdd() {
-        list.add(2000);
-        list.add(0);
-        list.add(0);
-        list.add(2000);
-        list.add(-2000);
-        list.add(0);
-        list.add(0);
-        list.add(-2000);
-        list.add(0);
-        list.add(0);
-        list.add(0);
-        list.add(0);
+        superTest =  new Direction(0,100,0,loc);
+        list.add(superTest);
+        superTest = new Direction(100,0,0,loc);
+        list.add(superTest);
+        superTest = new Direction(0,-100,0,loc);
+        list.add(superTest);
+        superTest = new Direction(-100,0,0,loc);
+        list.add(superTest);
     }
-;
-}
 
+}
 /**
  * int occ = 2; // at Start not in method loop
  * 
