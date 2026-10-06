@@ -9,14 +9,16 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name="Basic Teleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
+@TeleOp(name="BasicTeleop", group="mai")  // on the DS, opmodes are sorted by gorup, then name
 public class BasicTeleop extends OpMode {
     private ElapsedTime clock = new ElapsedTime();
     private MecanumDrive drive;
     private Localizer loc;
     private State currentState;
-    List<Integer> list = new ArrayList<Integer>(); // each is "x" , "y" , "h" and is where the robot should move
+    List<PathPoint> list = new ArrayList<PathPoint>(); // each is "x" , "y" , "h" and is where the robot should move
     int occ; // New Variable for which occurence in the List<String> the robot should move to.
+    private PathPoint goTo;
+    private final int BASETIMELIM; // The base time limit for PathPoint until the robot moves to the next location requested to go
     
     private enum State {
         STOP,
@@ -30,9 +32,10 @@ public class BasicTeleop extends OpMode {
         loc = new Localizer(hardwareMap, "gbpoc");
         drive = new MecanumDrive(hardwareMap, loc);
         currentState = State.STOP;
-        occ = 2;
-        testAdd();
-
+        occ = 0;
+        AddPaths();
+        BASETIMELIM = 2000;
+        
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
     }
@@ -60,26 +63,38 @@ public class BasicTeleop extends OpMode {
         double y = -gamepad1.left_stick_x;  // gamepad 'left' (-x) is robot +y
         double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
 
-        // state machine here
+        // state machines here
         if (currentState == State.STOP){
             if (gamepad1.y){
+                clock.reset();
                 currentState = State.FOLLOWPATH;
-            }
-            if(gamepad1.x) {
-                stop();
             }
             drive.move(x, y, r);
         }
         if (currentState == State.FOLLOWPATH){
-            if((drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ))) && ((occ+3) < list.size())){ //&& ((occ+3) < list.size()-1)
-               occ+=3;
-               telemetry.addData("\nCurrent occ: " + occ , occ);
-            }else if (drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ)) && (occ == list.size()-1)){
-               currentState = State.STOP;
+            if((drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH())) && ((occ+1) < list.size())){ //&& ((occ+3) < list.size()-1)
+               clock.reset();
+               occ++;
+            }else if((clock.milliseconds() >= list.get(occ).giveTimeLim()) && ((occ+1) < list.size())){
+                clock.reset();
+                occ++;
+
+            }else if ((clock.milliseconds() >= list.get(occ).giveTimeLim()) && (occ == list.size()-1)){
+                clock.reset();
+                occ = 0;
+                currentState = State.STOP;
             }
-            drive.moveTo(list.get(occ-2) , list.get(occ-1) , list.get(occ));
+            else if (drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH()) && (occ == list.size()-1)){
+                clock.reset();
+                occ = 0;
+                currentState = State.STOP;
+            }
+
+            drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH());
             if(gamepad1.x) {
-                stop();
+                clock.reset();
+                occ = 0;
+                currentState = State.STOP;
             }
         }
         // set actuators here
@@ -93,22 +108,23 @@ public class BasicTeleop extends OpMode {
     public void stop() {
     }
 
-    public void testAdd() {
-        list.add(2000);
-        list.add(0);
-        list.add(0);
-        list.add(2000);
-        list.add(-2000);
-        list.add(0);
-        list.add(0);
-        list.add(-2000);
-        list.add(0);
-        list.add(0);
-        list.add(0);
-        list.add(0);
+
+    // Adds different locations for robot to attempt to go to, may not be needed for competition
+    public void AddPaths() {
+        goTo =  new PathPoint(0,100,0,BASETIMELIM);
+        list.add(goTo);
+        goTo = new PathPoint(100,0,0,BASETIMELIM);
+        list.add(goTo);
+        goTo = new PathPoint(0,-100,0,BASETIMELIM);
+        list.add(goTo);
+        goTo = new PathPoint(-100,0,0,BASETIMELIM);
+        list.add(goTo);
     }
-;
+
 }
+
+
+
 
 /**
  * int occ = 2; // at Start not in method loop

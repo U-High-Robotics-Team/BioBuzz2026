@@ -12,12 +12,14 @@ public class PathPoint {
     private int x;
     private int y;
     private int h;
+    private int timeLim;
 
-    public Direction(int x, int y, int h){
+    public PathPoint(int x, int y, int h, int timeLim){
 
-        this.x = x;
-        this.y = y;
-        this.h = h;
+        this.x = x; // distance x in cm from robot starting point
+        this.y = y; // distance y in cm from robot starting point
+        this.h = h; // degree in radian that robot want to rotate to (counter clock-wise)
+        this.timeLim = timeLim; // limit for robot to attempt to get to point (in milliseconds) until time is up
     }
 
     public int giveX(){
@@ -31,4 +33,9 @@ public class PathPoint {
     public int giveH(){
         return this.h;
     }
+
+    public int giveTimeLim(){
+        return this.timeLim;
+    }
+
 }
