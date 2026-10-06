@@ -42,6 +42,7 @@ import org.firstinspires.ftc.vision.apriltag.AprilTagClusterDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagDetection;
 import org.firstinspires.ftc.vision.apriltag.AprilTagProcessor;
 import org.firstinspires.ftc.vision.apriltag.AprilTagSingleDetection;
+import org.firstinspires.ftc.vision.apriltag.AprilTagPoseFtc;
 
 import java.util.List;
 
@@ -106,6 +107,9 @@ public class GreenZone extends LinearOpMode {
     // the line.
     static final int VENDOR_ID_SUNPLUS_INNOVATION_TECHNOLOGY = 0x1BCF;
     static final int PRODUCT_ID_ARDUCAM_OV5648 = 0x284C;
+    static final double MAX_YAW_DEG = 20;        // side-of-hive limit
+    static final double MAX_PITCH_DEG = 25;      // under-hive limit
+    static final int    MIN_CLUSTER_PERCENT = 50;
 
     @Override
     public void runOpMode() {
@@ -287,39 +291,51 @@ public class GreenZone extends LinearOpMode {
 
     private boolean isGreen() {
 
-        if (targetDetection == null) {
+        if (targetDetection == null || targetDetection.ftcPose == null) {
             return false;
         }
-
+        AprilTagClusterDetection cluster = (AprilTagClusterDetection) targetDirection;
+        if(cluster.percentClusterFound < MIN_CLUSTER_PERCENT){
+            return false;
+        }
         double shotScore = calculateShotScore();
+        telemetry.addData(shotScore + "%");
         return shotScore >= 0.75;
 
     } // end method isGreen()
 
     private double calculateShotScore() {
-        /*
-         * These values are not final
-         * TODO - test for ideal shooting position & other numbers
-         */
+       AprilTagPoseFtc pose = targetDetection.ftcPose;
 
-        double idealRange = 36; // inches   36.7 camera angle
-        double idealBearing = 0; // degrees
-        double idealElevation = 20; // degrees
+    // Debug telemetry
+    telemetry.addData("Yaw", "%.1f", pose.yaw);
+    telemetry.addData("Pitch", "%.1f", pose.pitch);
+    telemetry.addData("Roll", "%.1f", pose.roll);
 
-        double rangeError = (targetDetection.ftcPose.range - idealRange);
-        double bearingError = (targetDetection.ftcPose.bearing - idealBearing);
-        double elevationError = (targetDetection.ftcPose.elevation - idealElevation);
+    // Hard gates: impossible shooting positions
+    if (Math.abs(pose.yaw) > MAX_YAW_DEG)     return 0;  // side of hive
+    if (Math.abs(pose.pitch) > MAX_PITCH_DEG) return 0;  // under hive
+    if (Math.abs(pose.roll) > 90)             return 0;  // flipped/bad pose
 
-        double error = Math.sqrt(
-                rangeError * rangeError +
-                bearingError * bearingError +
-                elevationError * elevationError);
+    // Placeholder ideal values - TODO: tune with turret
+    double idealRange = 36;     // inches
+    double idealBearing = 0;    // degrees
+    double idealElevation = 20; // degrees
+    double idealYaw = 0;        // degrees
 
-        double k = 0.005; // smaller # = longer before percent drop
+    double rangeError     = (pose.range - idealRange) / 6.0;
+    double bearingError   = (pose.bearing - idealBearing) / 4.0;
+    double elevationError = (pose.elevation - idealElevation) / 4.0;
+    double yawError       = (pose.yaw - idealYaw) / 10.0;
 
-        double score = Math.exp(-k * error * error);
+    double error = Math.sqrt(
+            rangeError * rangeError +
+            bearingError * bearingError +
+            elevationError * elevationError +
+            yawError * yawError);
 
-        return score;
+    double k = 1;
+    return Math.exp(-k * error * error);
     } // end method calculateShotScore()
 
 } // end class
