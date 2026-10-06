@@ -271,9 +271,9 @@ public class GreenZone extends LinearOpMode {
         } // end for() loop
 
         // Add "key" information to telemetry
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-        telemetry.addLine("RBE = Range, Bearing & Elevation");
+        //telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        //telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        //telemetry.addLine("RBE = Range, Bearing & Elevation");
 
         telemetry.addLine("");
 
@@ -302,20 +302,20 @@ public class GreenZone extends LinearOpMode {
          * TODO - test for ideal shooting position & other numbers
          */
 
-        double idealRange = 36; // inches
+        double idealRange = 36; // inches   36.7 camera angle
         double idealBearing = 0; // degrees
         double idealElevation = 20; // degrees
 
-        double rangeError = (targetDetection.ftcPose.range - idealRange) / 6.0;
-        double bearingError = (targetDetection.ftcPose.bearing - idealBearing) / 4.0;
-        double elevationError = (targetDetection.ftcPose.elevation - idealElevation) / 4.0;
+        double rangeError = (targetDetection.ftcPose.range - idealRange);
+        double bearingError = (targetDetection.ftcPose.bearing - idealBearing);
+        double elevationError = (targetDetection.ftcPose.elevation - idealElevation);
 
         double error = Math.sqrt(
                 rangeError * rangeError +
                 bearingError * bearingError +
                 elevationError * elevationError);
 
-        double k = 1; // smaller # = longer before percent drop
+        double k = 0.005; // smaller # = longer before percent drop
 
         double score = Math.exp(-k * error * error);
 
