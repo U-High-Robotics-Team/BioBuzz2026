@@ -18,7 +18,7 @@ public class BasicTeleop extends OpMode {
     List<PathPoint> list = new ArrayList<PathPoint>(); // each is "x" , "y" , "h" and is where the robot should move
     int occ; // New Variable for which occurence in the List<String> the robot should move to.
     private PathPoint goTo;
-    private final int BASETIMELIM; // The base time limit for PathPoint until the robot moves to the next location requested to go
+    private final int BASETIMELIM; // The base time limit in miliseconds for PathPoint until the robot moves to the next location requested to go
     
     private enum State {
         STOP,
