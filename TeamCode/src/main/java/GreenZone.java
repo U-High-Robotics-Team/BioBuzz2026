@@ -1,32 +1,3 @@
-/* Copyright (c) 2023 FIRST. All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted (subject to the limitations in the disclaimer below) provided that
- * the following conditions are met:
- *
- * Redistributions of source code must retain the above copyright notice, this list
- * of conditions and the following disclaimer.
- *
- * Redistributions in binary form must reproduce the above copyright notice, this
- * list of conditions and the following disclaimer in the documentation and/or
- * other materials provided with the distribution.
- *
- * Neither the name of FIRST nor the names of its contributors may be used to endorse or
- * promote products derived from this software without specific prior written permission.
- *
- * NO EXPRESS OR IMPLIED LICENSES TO ANY PARTY'S PATENT RIGHTS ARE GRANTED BY THIS
- * LICENSE. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
- * THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE
- * FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL
- * DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR
- * SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
- * CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY,
- * OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 package org.firstinspires.ftc.teamcode;
 
 import android.util.Size;
@@ -80,11 +51,18 @@ public class GreenZone extends LinearOpMode {
      * Shot limits - these values are not final
      * TODO - tune once the turret is done
      */
+
     static final double MAX_YAW_DEG = 20; // side-of-hive limit
     static final double MAX_PITCH_DEG = 25; // under-hive limit
-    static final double MIN_CLUSTER_PERCENT = 50; // reject partial cluster views
+    static final double MAX_ROLL_DEG = 90; // this means its flipped 
+
+    static final double IDEAL_RANGE = 50; // inches
+    static final double IDEAL_BEARING = 5; // degrees
+    static final double IDEAL_ELEVATION = 15; // degrees
+    static final double IDEAL_YAW = 0; // degrees
 
     /**
+     * 
      * The variable to store our instance of the AprilTag processor.
      */
     private AprilTagProcessor aprilTag;
@@ -104,30 +82,12 @@ public class GreenZone extends LinearOpMode {
      */
     private double targetClusterPercent = 0;
 
-    // To find the VID/PID for a camera:
-    //
-    // Linux: open a terminal, run "lsusb", locate the line for your camera,
-    // and find the section that resembles "ID 1d6b:0002"; this is VID:PID
-    //
-    // OSX: open a terminal, run "system_profiler SPUSBDataType", locate the
-    // section for your camera, and find the "Product ID:" and "Vendor ID:"
-    // listings in the output
-    //
-    // Windows: open a PowerShell, run:
-    // Get-PnpDevice -PresentOnly | Where-Object { $_.InstanceId -like 'USB*' } |
-    // Select-Object FriendlyName, InstanceId
-    // and locate the line for your camera. The VID and PID is listed directly in
-    // the line.
     static final int VENDOR_ID_SUNPLUS_INNOVATION_TECHNOLOGY = 0x1BCF;
     static final int PRODUCT_ID_ARDUCAM_OV5648 = 0x284C;
 
     @Override
     public void runOpMode() {
 
-        // Demonstrate how to add a camera compatibility quirk
-        // these can sometimes be needed if a camera behaves poorly.
-        // Quirks have no effect unless the camera you are using matches the specified
-        // VID/PID
         CameraCompatibilityManager.getInstance()
                 .addQuirk(
                         VENDOR_ID_SUNPLUS_INNOVATION_TECHNOLOGY,
@@ -287,16 +247,16 @@ public class GreenZone extends LinearOpMode {
         } // end for() loop
 
         // Add "key" information to telemetry
-        telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
-        telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
-        telemetry.addLine("RBE = Range, Bearing & Elevation");
+        //telemetry.addLine("\nkey:\nXYZ = X (Right), Y (Forward), Z (Up) dist.");
+        //telemetry.addLine("PRY = Pitch, Roll & Yaw (XYZ Rotation)");
+        //telemetry.addLine("RBE = Range, Bearing & Elevation");
 
         telemetry.addLine("");
 
         if (isGreen()) {
             telemetry.addLine("SHOOT");
         } else {
-            telemetry.addLine("DON'T SHOOT");
+            telemetry.addLine("WAIT");
         }
 
     } // end method telemetryAprilTag()
@@ -307,12 +267,8 @@ public class GreenZone extends LinearOpMode {
             return false;
         }
 
-        // Partial cluster views give unreliable poses
-        if (targetClusterPercent < MIN_CLUSTER_PERCENT) {
-            return false;
-        }
-
         double shotScore = calculateShotScore();
+        telemetry.addLine(shotScore * 100 + "%");
         return shotScore >= 0.75;
 
     } // end method isGreen()
@@ -325,31 +281,24 @@ public class GreenZone extends LinearOpMode {
 
         AprilTagPoseFtc pose = targetDetection.ftcPose;
 
-        // Debug telemetry
-        telemetry.addLine(String.format("Yaw: %.1f", pose.yaw));
-        telemetry.addLine(String.format("Pitch: %.1f", pose.pitch));
-        telemetry.addLine(String.format("Roll: %.1f", pose.roll));
-
-        // Hard gates: positions where the shot is impossible
         if (Math.abs(pose.yaw) > MAX_YAW_DEG) {
-            return 0; // side of the hive
+            telemetry.addLine("side of hive");
+            return 0; // side of the hive. Yaw is based on the x tilt of tag
         }
         if (Math.abs(pose.pitch) > MAX_PITCH_DEG) {
-            return 0; // under the hive
+            telemetry.addLine("under hive");
+            return 0; // under the hive. up and down tilt
         }
-        if (Math.abs(pose.roll) > 90) {
-            return 0; // flipped / bad pose
+        if (Math.abs(pose.roll) > MAX_ROLL_DEG) {
+            telemetry.addLine("flipped");
+            return 0; // flipped. If it is upside down then it is rotated over and is flipped
         }
 
-        double idealRange = 36; // inches
-        double idealBearing = 0; // degrees
-        double idealElevation = 20; // degrees
-        double idealYaw = 0; // degrees
-
-        double rangeError = (pose.range - idealRange) / 6.0;
-        double bearingError = (pose.bearing - idealBearing) / 4.0;
-        double elevationError = (pose.elevation - idealElevation) / 4.0;
-        double yawError = (pose.yaw - idealYaw) / 10.0;
+        // the 6 4s and 10 are the weights
+        double rangeError = (pose.range - IDEAL_RANGE) / 6.0;
+        double bearingError = (pose.bearing - IDEAL_BEARING) / 4.0;
+        double elevationError = (pose.elevation - IDEAL_ELEVATION) / 4.0;
+        double yawError = (pose.yaw - IDEAL_YAW) / 10.0;
 
         double error = Math.sqrt(
                 rangeError * rangeError +
@@ -357,7 +306,7 @@ public class GreenZone extends LinearOpMode {
                 elevationError * elevationError +
                 yawError * yawError);
 
-        double k = 1; // smaller # = longer before percent drop
+        double k = 0.03; // smaller # = longer before percent drop
 
         double score = Math.exp(-k * error * error);
 
