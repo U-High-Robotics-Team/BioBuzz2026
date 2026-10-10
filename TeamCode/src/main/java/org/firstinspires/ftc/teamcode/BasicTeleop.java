@@ -22,7 +22,12 @@ public class BasicTeleop extends OpMode {
     
     private enum State {
         STOP,
-        FOLLOWPATH
+        FOLLOWPATH,
+        OBSERVEBALL,
+        MOVETOBALL,
+        CAPTUREBALL,
+        MOVETOBUCKET,
+        SHOOTBALL
     }
     
     // Code to run ONCE when the driver hits INIT
@@ -34,7 +39,7 @@ public class BasicTeleop extends OpMode {
         currentState = State.STOP;
         occ = 0;
         AddPaths();
-        BASETIMELIM = 2000;
+        BASETIMELIM = 2000; // 2 seconds
         
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
@@ -59,6 +64,7 @@ public class BasicTeleop extends OpMode {
         loc.update();
         Pose2D currentLoc = loc.getPosition();
         telemetry.addData("Current: ", currentLoc);
+        telemetry.addData("\nCurrent State: ", currentState);
         double x = gamepad1.left_stick_y;   // gamepad 'up' (+y) is robot +X
         double y = -gamepad1.left_stick_x;  // gamepad 'left' (-x) is robot +y
         double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
@@ -72,24 +78,14 @@ public class BasicTeleop extends OpMode {
             drive.move(x, y, r);
         }
         if (currentState == State.FOLLOWPATH){
-            if((drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH())) && ((occ+1) < list.size())){ //&& ((occ+3) < list.size()-1)
+            if((drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH())) && ((occ+1) < list.size()) || (clock.milliseconds() >= list.get(occ).giveTimeLim()) && ((occ+1) < list.size())){ 
                clock.reset();
                occ++;
-            }else if((clock.milliseconds() >= list.get(occ).giveTimeLim()) && ((occ+1) < list.size())){
-                clock.reset();
-                occ++;
-
-            }else if ((clock.milliseconds() >= list.get(occ).giveTimeLim()) && (occ == list.size()-1)){
+            }else if ((clock.milliseconds() >= list.get(occ).giveTimeLim()) && (occ == list.size()-1) || (drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH()) && (occ == list.size()-1))){
                 clock.reset();
                 occ = 0;
                 currentState = State.STOP;
             }
-            else if (drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH()) && (occ == list.size()-1)){
-                clock.reset();
-                occ = 0;
-                currentState = State.STOP;
-            }
-
             drive.moveTo(list.get(occ).giveX() , list.get(occ).giveY() , list.get(occ).giveH());
             if(gamepad1.x) {
                 clock.reset();
