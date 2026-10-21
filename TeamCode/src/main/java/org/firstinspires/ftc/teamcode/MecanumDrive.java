@@ -66,7 +66,7 @@ public class MecanumDrive {
         double sinTheta = Math.sin(heading);
         // transform coordintes from commanded field coords to robot coords
         double robotX = fieldX * cosTheta + fieldY * -sinTheta;
-        double robotY = fieldX * sinTheta + fieldY * cosTheta;
+        double robotY = fieldX * sinTheta + fieldY * -cosTheta;
 
         setPowerVectors(robotX, robotY, rot);
     }
