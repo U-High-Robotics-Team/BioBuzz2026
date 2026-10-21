@@ -13,10 +13,10 @@ public class BasicStateMachineTeleop extends OpMode {
     
     private enum State {
         COLLECT,
-        DRIVE,
+        DRIVETOSIDE,
         SEARCH,
         AUTOAIM,
-        MANUALAIM,
+        //MANUALAIM,
         SHOOT
     }
 
@@ -59,7 +59,7 @@ public class BasicStateMachineTeleop extends OpMode {
             3. if no ball move around to find one
             4. if 4 balls detected, move to search state
             */
-        } else if (currentState == State.DRIVE){
+        } else if (currentState == State.DRIVETOSIDE){
             /*
             1. keep feedwheel reverse and turn off intake
             2. if side boolean is false move to a certain side of the hive using odometry
