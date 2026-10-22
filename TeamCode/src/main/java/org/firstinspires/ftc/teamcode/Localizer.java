@@ -7,7 +7,7 @@ import com.qualcomm.hardware.gobilda.GoBildaPinpointDriver;
 
 public class Localizer {
 
-     GoBildaPinpointDriver gbpd;
+     private GoBildaPinpointDriver gbpd;
      /**
      * Creates a object to track positon and heading. Currently only supports
      * the GoBilda Pidpoint Driver odometry system. Future development may 

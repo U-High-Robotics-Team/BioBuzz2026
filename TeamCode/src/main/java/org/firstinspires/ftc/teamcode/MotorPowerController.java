@@ -7,8 +7,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class MotorPowerController {
     
     private DcMotor motor;
-    double minPower = -1;
-    double maxPower = 1;
+    private double minPower = -1;
+    private double maxPower = 1;
 
     /**
      * Creates an object that controls the power of a single DC motor

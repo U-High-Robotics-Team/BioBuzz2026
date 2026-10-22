@@ -13,8 +13,8 @@ public class MecanumDrive {
     private final double Ki = 0.00013; // provides extra boost when you get close to the target
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
-    private double closeEnoughXY = 10; // prev 1.5
-    private double closeEnoughH = 1; // prev = 0.001
+    private final double closeEnoughXY = 10; // prev 1.5
+    private final double closeEnoughH = 1; // prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
     
