@@ -17,6 +17,8 @@ public class MecanumDrive {
     private final double closeEnoughH = 1; // prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
+    private double closeEnoughXY = 10; // prev 1.5
+    private double closeEnoughH = 1; // prev = 0.001
     
     private MotorPowerController frontLeft;
     private MotorPowerController frontRight;
@@ -83,10 +85,10 @@ public class MecanumDrive {
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        // transform coordintes from commanded field coords to robot coords
-        // (rotational transform matrix)
+        // rotate coordinate system 90deg (+X is forward) and adjust for field heading
         double cosTheta = Math.cos(heading);
         double sinTheta = Math.sin(heading);
+        // transform coordintes from commanded field coords to robot coords
         double robotX = fieldX * cosTheta + fieldY * -sinTheta;
         double robotY = fieldX * sinTheta + fieldY * cosTheta;
 
@@ -109,7 +111,7 @@ public class MecanumDrive {
         double currentY = currentPosition.getY(DistanceUnit.MM);
         double currentHeading = currentPosition.getHeading(AngleUnit.RADIANS);
 
-         // find errors between current and target field positions
+         // find errors between current and target positions
         double deltaX = targetX - currentX;
         double deltaY = targetY - currentY;
         double deltaHeading = targetHeading - currentHeading;
@@ -135,12 +137,12 @@ public class MecanumDrive {
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
-        // transform coordintes from commanded field coords to robot coords
-        // (rotational transform matrix)
-        double cosTheta = Math.cos(-currentHeading);
-        double sinTheta = Math.sin(-currentHeading);
-        double robotX = xPower * cosTheta + yPower * -sinTheta;
-        double robotY = xPower * sinTheta + yPower * cosTheta;
+        double cosAngle = Math.cos(-currentHeading);
+        double sinAngle = Math.sin(-currentHeading);
+
+        // Use inverse rotational matrix
+        double localX = xPower * cosAngle + yPower * sinAngle;
+        double localY = -xPower * sinAngle + yPower * cosAngle;
 
         setPowerVectors(robotX, robotY, turnPower);
         return false;
