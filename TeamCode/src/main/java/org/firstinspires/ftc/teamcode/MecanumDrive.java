@@ -17,8 +17,6 @@ public class MecanumDrive {
     private final double closeEnoughH = 1; // prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
-    private double closeEnoughXY = 10; // prev 1.5
-    private double closeEnoughH = 1; // prev = 0.001
     
     private MotorPowerController frontLeft;
     private MotorPowerController frontRight;
@@ -141,8 +139,8 @@ public class MecanumDrive {
         double sinAngle = Math.sin(-currentHeading);
 
         // Use inverse rotational matrix
-        double localX = xPower * cosAngle + yPower * sinAngle;
-        double localY = -xPower * sinAngle + yPower * cosAngle;
+        double robotX = xPower * cosAngle + yPower * sinAngle;
+        double robotY = -xPower * sinAngle + yPower * cosAngle;
 
         setPowerVectors(robotX, robotY, turnPower);
         return false;

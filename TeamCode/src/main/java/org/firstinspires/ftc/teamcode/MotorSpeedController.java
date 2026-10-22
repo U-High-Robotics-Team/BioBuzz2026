@@ -54,12 +54,12 @@ public class MotorSpeedController {
      * Sets the minimum and maximum limits for motor speed. 
      * Inputs beyond these limits will be capped at the limits.
      * If not set, defaults to min=1 and max=1
-     * @param min has a lowest possible value of -1 (100% reverse power)
-     * @param max has a highest possible value of 1 (100% forward pwoer)
+     * @param min has a lowest possible value of -6000 (fastest available motor)
+     * @param max has a highest possible value of 6000 (fastest available motor)
      */
     public void setLimits(double min, double max){
-        minRPM = Math.max(min, -1);
-        maxRPM = Math.min(max, 1);
+        minRPM = Math.max(min, -6000);
+        maxRPM = Math.min(max, 6000);
     }
 
     /**
