@@ -8,8 +8,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 public class MotorSpeedController {
     
     private DcMotorEx motor;
-    double minRPM = -10;
-    double maxRPM = 10;
+    double minRPM = -100;
+    double maxRPM = 100;
     // data below for GolBilda 5200 series motors
     double TICKS_PER_REV = 28.0;
     int[] MOTOR_SPEEDS = {30, 117, 223, 312, 435, 1150, 1620, 6000};
