@@ -5,8 +5,9 @@ import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-@TeleOp(name = "Basic State Machine Teleop", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
-public class BasicStateMachineTeleop extends OpMode {
+@SuppressWarnings("unused")
+@TeleOp(name = "BioBuzz Teleop", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
+public class BioBuzzTeleop extends OpMode {
     
     private ElapsedTime clock = new ElapsedTime();
     private State currentState;
@@ -16,7 +17,7 @@ public class BasicStateMachineTeleop extends OpMode {
         DRIVETOSIDE,
         SEARCH,
         AUTOAIM,
-        //MANUALAIM,
+        MANUALAIM,
         SHOOT
     }
 
@@ -24,7 +25,7 @@ public class BasicStateMachineTeleop extends OpMode {
     @Override
     public void init() {
         // Initialize the hardware variables.
-        motor312 = new MotorPowerController(hardwareMap, "motor1");
+      
 
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
