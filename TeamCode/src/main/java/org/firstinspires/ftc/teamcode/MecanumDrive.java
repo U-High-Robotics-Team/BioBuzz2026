@@ -1,17 +1,20 @@
 package org.firstinspires.ftc.teamcode;
 
-import com.qualcomm.robotcore.hardware.HardwareMap;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+import com.qualcomm.robotcore.hardware.HardwareMap;
 
+@SuppressWarnings("unused")
 public class MecanumDrive {
 
     private final double Kp = 0.0022; // bigger the error the faster we will fix it
     private final double Ki = 0.00013; // provides extra boost when you get close to the target
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
+    private final double closeEnoughXY = 10; // prev 1.5
+    private final double closeEnoughH = 1; // prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
     private double closeEnoughXY = 10; // prev 1.5
@@ -51,6 +54,27 @@ public class MecanumDrive {
         this.loc = loc;
     }
 
+    /**
+     * Moves the robot with the specified power level in x, y, and rotation
+     * Power level is equivalent to speed in most cases, so this provides good manual control using a joystick
+     * The robot will move in its own local coordinate system
+     * @param fieldX the power level to be applied in the robot X direction (fwd-back) from 1.0 to -1.0
+     * @param fieldY the power level to be applied in the robot Y direction (left-right) from 1.0 to -1.0
+     * @param rot the power level to be applied to counterclockwise rotation from -1.0 to 1.0
+     */
+    public void movePOV(double robotX, double robotY, double rot){
+        setPowerVectors(robotX, robotY, rot);
+    }
+
+    /**
+     * Moves the robot with the specified power level in x, y, and rotation
+     * Power level is equivalent to speed in most cases, so this provides good manual control using a joystick
+     * The robot will move in the field coordinate system if a localizer is defined
+     * If no localizer is defined, then the robot will move using its own coordinate system
+     * @param fieldX the power level to be applied in the field +X direection from -1.0 to 1.0
+     * @param fieldY the power level to be applied in the field +Y direection from -1.0 to 1.0
+     * @param rot the power level to be applied to counterclockwise rotation from -1.0 to 1.0
+     */
     public void move(double fieldX, double fieldY, double rot){
         // first assume no availabe localization to field coordinate system
         Pose2D pose = null;
@@ -71,6 +95,14 @@ public class MecanumDrive {
         setPowerVectors(robotX, robotY, rot);
     }
 
+    /**
+     * Moves the robot toward the specified target point and heading in field coordinates
+     * This method is meant to be called rapidly in a loop so that progress toward the target
+     * is continually monitored and adjusted
+     * @param targetX the targeted field X position in mm
+     * @param targetY the targeted field Y position in mm
+     * @param targetHeading the targeted heading in radians CCW from the +x axis
+     */
     public boolean moveTo(double targetX, double targetY, double targetHeading) {
         // get current position & heading - throws error if no localizer
         loc.update();
@@ -95,13 +127,13 @@ public class MecanumDrive {
             deltaHeading = 0;
         }
         if((deltaX == 0) && (deltaY == 0) && (deltaHeading == 0)){
-            setPowerVectors(0,0,0);
+            stop();
             return true;
         }
 
         // compute PID power levels
-        double xPower = pid(deltaX + 10);
-        double yPower = pid(deltaY + 10); // added = + 10 on all y power
+        double xPower = pid(deltaX);
+        double yPower = pid(deltaY);
         double turnPower = -deltaHeading;
 
         // Negative currentHeading due to global rotation being counterclockwise
@@ -112,7 +144,7 @@ public class MecanumDrive {
         double localX = xPower * cosAngle + yPower * sinAngle;
         double localY = -xPower * sinAngle + yPower * cosAngle;
 
-        setPowerVectors(-localX, localY, turnPower);
+        setPowerVectors(robotX, robotY, turnPower);
         return false;
     }
 
@@ -122,6 +154,10 @@ public class MecanumDrive {
         frontRight.setPower(fwd - strafe - rot);
         backLeft.setPower(  fwd - strafe + rot);
         backRight.setPower( fwd + strafe - rot);
+    }
+
+    public void stop(){
+        setPowerVectors(0,0,0);
     }
 
      public double pid(double error){
