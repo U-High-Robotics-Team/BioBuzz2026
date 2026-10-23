@@ -12,8 +12,6 @@ public class MotorSpeedController {
     double maxRPM = 100;
     // data below for GolBilda 5200 series motors
     double TICKS_PER_REV = 28.0;
-    int[] MOTOR_SPEEDS = {30, 117, 223, 312, 435, 1150, 1620, 6000};
-    double[] GEAR_RATIOS = {200, 50.9, 26.9, 19.2, 13.7, 5.2, 3.7, 1};
     double tpsToRPM = 60 / TICKS_PER_REV;  // conversion factor - defaults to gear ratio = 1
 
     /**
@@ -36,6 +34,8 @@ public class MotorSpeedController {
     }
 
     private double findRatio(int rpm){
+        int[] MOTOR_SPEEDS = {30, 117, 223, 312, 435, 1150, 1620, 6000};
+        double[] GEAR_RATIOS = {200, 50.9, 26.9, 19.2, 13.7, 5.2, 3.7, 1};
         for (int i = 0; i < MOTOR_SPEEDS.length; i++) {
             if (MOTOR_SPEEDS[i] == rpm) return GEAR_RATIOS[i];
         }

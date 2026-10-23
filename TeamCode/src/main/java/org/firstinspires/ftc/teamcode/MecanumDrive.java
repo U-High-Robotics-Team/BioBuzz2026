@@ -13,8 +13,8 @@ public class MecanumDrive {
     private final double Ki = 0.00013; // provides extra boost when you get close to the target
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
-    private final double closeEnoughXY = 10; // prev 1.5
-    private final double closeEnoughH = .05; // prev = 0.001
+    private final double closeEnoughXY = 10; // in mm, prev 1.5
+    private final double closeEnoughH = .05; // in radians, prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
     
@@ -83,10 +83,9 @@ public class MecanumDrive {
             heading = pose.getHeading(AngleUnit.RADIANS);
         }
         
-        // rotate coordinate system 90deg (+X is forward) and adjust for field heading
+        // transform coordintes from commanded field coords to robot coords
         double cosTheta = Math.cos(heading);
         double sinTheta = Math.sin(heading);
-        // transform coordintes from commanded field coords to robot coords
         double robotX = fieldX * cosTheta + fieldY * sinTheta;
         double robotY = fieldX * -sinTheta + fieldY * cosTheta;
 
@@ -134,10 +133,9 @@ public class MecanumDrive {
         double yPower = pid(deltaY);
         double turnPower = 1.0 * deltaHeading;
 
+        // transform coordintes from commanded field coords to robot coords
         double cosAngle = Math.cos(currentHeading);
         double sinAngle = Math.sin(currentHeading);
-
-        // Use inverse rotational matrix
         double robotX = xPower * cosAngle + yPower * sinAngle;
         double robotY = xPower * -sinAngle + yPower * cosAngle;
 
@@ -146,7 +144,7 @@ public class MecanumDrive {
     }
 
      private void setPowerVectors(double fwd, double strafe, double rot){
-        // see Brogan Pratt's derivation on YouTube
+        // see Brogan Pratt's derivation on YouTube (with sign changes for left=+strafe and ccw=+rot)
         frontLeft.setPower( fwd - strafe - rot);
         frontRight.setPower(fwd + strafe + rot);
         backLeft.setPower(  fwd + strafe - rot);
