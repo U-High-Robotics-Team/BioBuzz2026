@@ -31,7 +31,7 @@ public class MotorPowerController {
     /**
      * Sets the minimum and maximum limits for motor power. 
      * Inputs beyond these limits will be capped at the limits.
-     * If not set, defaults to min=01 and max=1
+     * If not set, defaults to min=-1 and max=1
      * @param min has a lowest possible value of -1 (100% reverse power)
      * @param max has a highest possible value of 1 (100% forward pwoer)
      */

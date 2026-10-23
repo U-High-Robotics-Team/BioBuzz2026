@@ -8,6 +8,9 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
+import org.firstinspires.ftc.robotcore.external.State;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
@@ -55,7 +58,13 @@ public class ReferenceOpmode extends OpMode {
         // read sensors here
         loc.update();
         Pose2D currentLoc = loc.getPosition();
-        double x = gamepad1.left_stick_y;   // gamepad 'up' (+y) is robot +X
+        telemetry.addData("State",currentState);
+        int currX = (int)currentLoc.getX(DistanceUnit.MM);
+        int currY = (int)currentLoc.getY(DistanceUnit.MM);
+        int theta = (int)currentLoc.getHeading(AngleUnit.DEGREES);
+        String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
+        telemetry.addData("Position",position);
+        double x = -gamepad1.left_stick_y;   // gamepad 'up' (-y) is robot +X
         double y = -gamepad1.left_stick_x;  // gamepad 'left' (-x) is robot +y
         double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
 
@@ -68,7 +77,10 @@ public class ReferenceOpmode extends OpMode {
             drive.move(x, y, r);
             if (gamepad1.a){
                 currentState = State.STOP;
-            }           
+            }   
+            if (gamepad1.b){
+                drive.moveTo(0,0,0);
+            }
         }
         // STATE MACHINE END
     }
