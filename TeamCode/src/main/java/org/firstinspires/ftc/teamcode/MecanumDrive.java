@@ -14,7 +14,7 @@ public class MecanumDrive {
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
     private final double closeEnoughXY = 10; // prev 1.5
-    private final double closeEnoughH = 1; // prev = 0.001
+    private final double closeEnoughH = .05; // prev = 0.001
     private double integralSum = 0;
     private double lastError = 0;
     
@@ -44,10 +44,10 @@ public class MecanumDrive {
         backLeft = new MotorPowerController(hm, "backLeft");
         backRight = new MotorPowerController(hm, "backRight");
          
-        frontLeft.setDirection(1);
-        frontRight.setDirection(-1);
-        backLeft.setDirection(1);
-        backRight.setDirection(-1);
+        frontLeft.setDirection(-1);
+        frontRight.setDirection(1);
+        backLeft.setDirection(-1);
+        backRight.setDirection(1);
 
         this.loc = loc;
     }
@@ -87,8 +87,8 @@ public class MecanumDrive {
         double cosTheta = Math.cos(heading);
         double sinTheta = Math.sin(heading);
         // transform coordintes from commanded field coords to robot coords
-        double robotX = fieldX * cosTheta + fieldY * -sinTheta;
-        double robotY = fieldX * sinTheta + fieldY * cosTheta;
+        double robotX = fieldX * cosTheta + fieldY * sinTheta;
+        double robotY = fieldX * -sinTheta + fieldY * cosTheta;
 
         setPowerVectors(robotX, robotY, rot);
     }
@@ -132,15 +132,14 @@ public class MecanumDrive {
         // compute PID power levels
         double xPower = pid(deltaX);
         double yPower = pid(deltaY);
-        double turnPower = -deltaHeading;
+        double turnPower = 1.0 * deltaHeading;
 
-        // Negative currentHeading due to global rotation being counterclockwise
-        double cosAngle = Math.cos(-currentHeading);
-        double sinAngle = Math.sin(-currentHeading);
+        double cosAngle = Math.cos(currentHeading);
+        double sinAngle = Math.sin(currentHeading);
 
         // Use inverse rotational matrix
         double robotX = xPower * cosAngle + yPower * sinAngle;
-        double robotY = -xPower * sinAngle + yPower * cosAngle;
+        double robotY = xPower * -sinAngle + yPower * cosAngle;
 
         setPowerVectors(robotX, robotY, turnPower);
         return false;
@@ -148,10 +147,10 @@ public class MecanumDrive {
 
      private void setPowerVectors(double fwd, double strafe, double rot){
         // see Brogan Pratt's derivation on YouTube
-        frontLeft.setPower( fwd + strafe + rot);
-        frontRight.setPower(fwd - strafe - rot);
-        backLeft.setPower(  fwd - strafe + rot);
-        backRight.setPower( fwd + strafe - rot);
+        frontLeft.setPower( fwd - strafe - rot);
+        frontRight.setPower(fwd + strafe + rot);
+        backLeft.setPower(  fwd + strafe - rot);
+        backRight.setPower( fwd - strafe + rot);
     }
 
     public void stop(){
