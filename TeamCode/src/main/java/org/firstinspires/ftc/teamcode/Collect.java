@@ -2,7 +2,7 @@ package org.firstinspires.ftc.teamcode;
 
 public class Collect {
 
-    private intakeMotor;
+    private MotorPowerController intakeMotor;
 
     public Collect(HardwareMap hm, String motorHardwareName) {
         intakeMotor = MotorPowerController(hm, motorHardwareName);
