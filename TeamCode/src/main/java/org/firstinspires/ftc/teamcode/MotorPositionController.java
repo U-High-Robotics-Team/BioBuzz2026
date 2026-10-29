@@ -9,7 +9,7 @@ public class MotorPositionController {
 
     public MotorPositionController(HardwareMap hm, String motorHardwareName, int motorRPM){
         motor = hm.get(DcMotorEx.class, motorHardwareName);
-        //TODO finish initialization
+        //TODO finish initialization code
     }
 
     public void setPosition(double degrees){
