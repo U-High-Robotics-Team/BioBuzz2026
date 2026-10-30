@@ -5,9 +5,9 @@ public class TransferDriver {
     private MotorSpeedController transferMotor;
     private MotorSpeedController feedMotor;
 
-    public TransferDriver(HardwareMap hm, String transferMotor, String feedMotor){
-        transferMotor = new MotorSpeedController(hm, transferMotor, 1000);
-        feedMotor = new MotorSpeedController(hm, feedMotor, 1000);
+    public TransferDriver(HardwareMap hm, String transferMotorName, String feedMotorName){
+        this.transferMotor = new MotorSpeedController(hm, transferMotorName, 1000);
+        this.feedMotor = new MotorSpeedController(hm, feedMotorName, 1000);
     }
 
     public void tranferOn(){
