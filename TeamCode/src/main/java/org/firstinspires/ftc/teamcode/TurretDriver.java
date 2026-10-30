@@ -3,21 +3,19 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.HardwareMap;
 
 
-private MotorSpeedController flywheelMotor;
-private ServoMotorController servoMotor;
-
-final double FLYWHEEL_RPM = 1240; // TODO figure out correct RPM value
-final double FLYWHEEL_TOLERENCE = 0.05;
-
-public class TurretDrive {
+public class TurretDriver {
     
-   
-    public TurretDrive(HardwareMap hm, String flywheelMotor, String servoName) {
-        flywheelMotor = new MotorSpeedController(hm, flywheelMotor, 6000);
-        servoMotor = new ServoMotorController(hm, servoName, 0);
+    private MotorSpeedController flywheelMotor;
+    private ServoMotorController servoMotor;
+    final double FLYWHEEL_RPM = 1240; // TODO figure out correct RPM value
+    final double FLYWHEEL_TOLERENCE = 0.05;
+
+    public TurretDriver(HardwareMap hm, String flywheelMotorname, String servoName) {
+        this.flywheelMotor = new MotorSpeedController(hm, flywheelMotorName, 6000);
+        this.servoMotor = new ServoMotorController(hm, servoName, 0);
         //TODO check rotation direction
-        flywheelMotor.setDirection(1);
-        servoMotor.setPosition(0); // takes a double from 0.0 to 1.0, our servos max turn is 1800 degrees,
+        this.flywheelMotor.setDirection(1);
+        this.servoMotor.setPosition(0); // takes a double from 0.0 to 1.0, our servos max turn is 1800 degrees,
                                    // so every 0.2 is 360 degrees
 
                                    // 205 - 70 gear ratio (2.9286)
