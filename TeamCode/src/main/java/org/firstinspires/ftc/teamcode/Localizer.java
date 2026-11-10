@@ -35,7 +35,7 @@ public class Localizer {
      public Pose2D getPosition(){
           Pose2D gbpdPose = null;
           if (gbpd != null){
-            gbpdPose = gbpd.getPosition();
+               gbpdPose = gbpd.getPosition();
           }
           // TODO fuse multiple sensor readings
           Pose2D fused  = gbpdPose;
