@@ -202,15 +202,12 @@ public class USBCameraDriver {
     }
 
 
-    public double getShotScore() {
-        return calculateShotScore();
-    }
 
     /**
      * uses april tag positions to calculate shot score
      * @return double shot score
      */
-    private double calculateShotScore() {
+    public double calculateShotScore() {
         
         if (!aprilTagDetected()) {
             return 0;
@@ -265,4 +262,6 @@ public class USBCameraDriver {
             currentDetections = Collections.emptyList();
         }
     }
+
+    
 }
