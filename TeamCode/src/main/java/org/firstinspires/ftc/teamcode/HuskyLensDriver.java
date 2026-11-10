@@ -16,7 +16,8 @@ public class HuskyLensDriver{
     }
 
     // Knock basically pings the camera to check if it is responsive before starting recognition.
-    // We could change the type of recognition if we want 
+    // Its gonna be auto initialized to Color reconition but we have the ability to change the type of 
+    // reconition if we want
     public void startRecognition(){
         if(huskyLens.knock()){
             huskyLens.setAlgorithm(HuskyLens.Algorithm.COLOR_RECOGNITION);
@@ -28,6 +29,29 @@ public class HuskyLensDriver{
     }
     public HuskyLens getHuskyLens(){
         return huskyLens;
+    }
+    /*
+    
+Face Recognition	ALGORITHM_FACE_RECOGNITION
+Object Tracking	ALGORITHM_OBJECT_TRACKING
+Object Recognition	ALGORITHM_OBJECT_RECOGNITION
+Line Tracking	ALGORITHM_LINE_TRACKING
+Color Recognition	ALGORITHM_COLOR_RECOGNITION
+Tag (AprilTag) Recognition	ALGORITHM_TAG_RECOGNITION
+Object Classification	ALGORITHM_OBJECT_CLASSIFICATION
+
+    */
+    public void setAlgorithm(HuskyLens.Algorithm algorithm){
+        huskyLens.setAlgorithm(algorithm);
+    }
+
+    /*
+        recaptures whats in the camera view and updates the blocks array with the new data.
+        
+    
+    */
+    public void update(){
+        huskyLens.update();
     }
     /*
     Scans whats in the camera view and returns the largest detected block based on area. 
