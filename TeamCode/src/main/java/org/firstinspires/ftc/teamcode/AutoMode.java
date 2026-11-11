@@ -19,6 +19,7 @@ public class AutoMode extends OpMode {
     private IntakeDriver intake;
     private TransferDriver transfer;
     private MotorSpeedController flywheel;
+    private boolean onlyOnce;
 
     private enum State{
         TURNON,
@@ -35,6 +36,7 @@ public class AutoMode extends OpMode {
         intake = new IntakeDriver(hardwareMap, "intake");
         transfer = new TransferDriver(hardwareMap, "transfer", "feed");
         flywheel = new MotorSpeedController(hardwareMap, "flywheel", 6000);
+        onlyOnce = true;
         telemetry.addData("Status", "Init OK");
     }
 
@@ -66,13 +68,21 @@ public class AutoMode extends OpMode {
             if(!drive.moveTo(100,0,90)){
                 drive.moveTo(100,0,90);
             }
-            if(drive.moveTo(100,0,90)) currentState = State.SHOOT;
+            if(drive.moveTo(100,0,90)){
+                currentState = State.SHOOT;
+            }
         }
         if(currentState==State.SHOOT){
-            clock.reset();
+            if(onlyOnce){
+                clock.reset();
+                onlyOnce = false;
+            }
             transfer.reverse();
             flywheel.setRPM(110);
-            if(clock.seconds()>=100) currentState = State.STOP;
+            if(clock.seconds()>=100){
+                currentState = State.STOP;
+                onlyOnce = true;
+            } 
         }
         if(currentState==State.STOP){
             intake.stop();
