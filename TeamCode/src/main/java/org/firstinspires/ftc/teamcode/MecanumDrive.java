@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @SuppressWarnings("unused")
 public class MecanumDrive {
 
-    private final double Kp = 0.0027; // bigger the error the faster we will fix it
-    private final double Kpr = 1.0;
+    private final double Kp = 0.00375; // bigger the error the faster we will fix it
+    private final double Kpr = 1.5; // TODO change number to prevent flucelation
     private final double Ki = 0.00013; // provides extra boost when you get close to the target
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
