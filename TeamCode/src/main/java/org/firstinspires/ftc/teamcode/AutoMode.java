@@ -62,7 +62,10 @@ public class AutoMode extends OpMode {
         if(currentState==State.TURNON){
             transfer.collect();
             intake.run();
-            currentState = State.MOVEFORWARD;
+            flywheel.setRPM(0);
+            if(clock.seconds() >= 2){
+                currentState = State.MOVEFORWARD;
+            }
         }
         if(currentState==State.MOVEFORWARD){
             if(!drive.moveTo(100,0,90)){
@@ -78,7 +81,7 @@ public class AutoMode extends OpMode {
                 onlyOnce = false;
             }
             transfer.loadTurret();
-            flywheel.setRPM(110);
+            flywheel.setRPM(6000);
             // will shoot after 20 seconds
             if(clock.seconds()>=20){
                 currentState = State.STOP;
