@@ -24,7 +24,7 @@ public class TransferDriver {
     }
 
     // makes all motors in transfer system to turn off
-    public void off(){
+    public void stop(){
         this.transferMotor.setRPM(0);
         this.feedMotor.setRPM(0);
     }
