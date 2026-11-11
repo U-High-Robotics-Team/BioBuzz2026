@@ -77,9 +77,10 @@ public class AutoMode extends OpMode {
                 clock.reset();
                 onlyOnce = false;
             }
-            transfer.reverse();
+            transfer.loadTurret();
             flywheel.setRPM(110);
-            if(clock.seconds()>=100){
+            // will shoot after 20 seconds
+            if(clock.seconds()>=20){
                 currentState = State.STOP;
                 onlyOnce = true;
             } 
