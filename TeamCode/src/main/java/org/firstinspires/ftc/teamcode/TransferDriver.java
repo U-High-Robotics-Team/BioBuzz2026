@@ -45,7 +45,7 @@ public class TransferDriver {
     }
 
     // tells driver if balls are in tranfser system
-    private boolean ballReady(){
+    public boolean ballReady(){
         if(getNumberOfBalls() >= 1){
             return true;
         }else {

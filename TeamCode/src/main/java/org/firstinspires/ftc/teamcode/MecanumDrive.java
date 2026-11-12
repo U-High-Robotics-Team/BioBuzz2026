@@ -9,7 +9,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 @SuppressWarnings("unused")
 public class MecanumDrive {
 
-    private final double Kp = 0.0022; // bigger the error the faster we will fix it
+    private final double Kp = 0.0032; // bigger the error the faster we will fix it
+    private final double Kpr = 2.0;   // Kp for rotation
     private final double Ki = 0.00013; // provides extra boost when you get close to the target
     private final double Kd = 0.00015; // dampens overshoot
     private final double WINDUP_LIMIT = 100; // caps integral sum to prevent windup
@@ -131,7 +132,7 @@ public class MecanumDrive {
         // compute PID power levels
         double xPower = pid(deltaX);
         double yPower = pid(deltaY);
-        double turnPower = 1.0 * deltaHeading;
+        double turnPower = Kpr * deltaHeading;
 
         // transform coordintes from commanded field coords to robot coords
         double cosAngle = Math.cos(currentHeading);

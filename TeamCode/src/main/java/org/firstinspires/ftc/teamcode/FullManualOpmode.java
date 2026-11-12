@@ -17,11 +17,9 @@ public class FullManualOpmode extends OpMode {
     private Localizer loc;
     private IntakeDriver intake;
     private TransferDriver transfer;
-    // private Turretdriver turret;
+    // private TurretDriver turret;
     //private ServoMotorController turret;
-    private MotorPowerController flywheel;
-    private boolean transferOn = false;
-
+    private MotorSpeedController flywheel;
     
     // Code to run ONCE when the driver hits INIT
     @Override
@@ -31,7 +29,7 @@ public class FullManualOpmode extends OpMode {
         drive = new MecanumDrive(hardwareMap, loc);
         intake = new IntakeDriver(hardwareMap, "intake"); //TODO check name
         transfer = new TransferDriver(hardwareMap, "transfer", "feed"); //TODO check name
-        flywheel = new MotorPowerController(hardwareMap, "flywheel");
+        flywheel = new MotorSpeedController(hardwareMap, "flywheel", 6000);
         // turret = new TurretDriver(hardwareMap, "turretServo"); //TODO check name        
 
         
@@ -54,12 +52,7 @@ public class FullManualOpmode extends OpMode {
     // This is the main program loop
     @Override
     public void loop() {
-        // read sensors here
-        if (gamepad1.a) transferOn = true;
-        if (gamepad1.y) {
-            transferOn =false;
-            
-        }
+        
         loc.update();
         Pose2D currentLoc = loc.getPosition();
         int currX = (int)currentLoc.getX(DistanceUnit.MM);
@@ -67,17 +60,28 @@ public class FullManualOpmode extends OpMode {
         int theta = (int)currentLoc.getHeading(AngleUnit.DEGREES);
         String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
         telemetry.addData("Position",position);
+        telemetry.addData("Flywheel rpm",flywheel.getRPM());
         double x = -gamepad1.left_stick_y;   // gamepad 'up' (-y) is robot +X
         double y = -gamepad1.left_stick_x;  // gamepad 'left' (-x) is robot +y
         double r = -gamepad1.right_stick_x; // gamepad 'left' (-x) is positive rotation
-
+        
         drive.move(x, y, r);
-        //intake.run();
-        if (transferOn){
+        if (gamepad1.a){
+            intake.run();
             transfer.collect();
-        } else {
-            transfer.off();
         }
+        if (gamepad1.b){
+            transfer.loadTurret();
+        }
+        if (gamepad1.x){
+            flywheel.setRPM(3500);
+        }
+        if (gamepad1.y) {
+            intake.stop();
+            transfer.off();
+            flywheel.coast();
+        }
+
         //flywheel.setPower(0.75);
         //transfer.loadTurret();
         //drive.moveTo(0,0,0);
@@ -88,5 +92,8 @@ public class FullManualOpmode extends OpMode {
     @Override
     public void stop() {
         drive.stop();
+        intake.stop();
+        transfer.off();
+        flywheel.coast();
     }
 }
