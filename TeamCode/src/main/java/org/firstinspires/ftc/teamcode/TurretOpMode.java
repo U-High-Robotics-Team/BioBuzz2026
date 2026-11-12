@@ -1,10 +1,3 @@
-/*
-*   DO NOT MODIFY THIS FILE
-*   This file exists as a reference for the standard way of creating a state machine opmode
-*   Make a copy if you wish and modify that
-*   DO NOT MODIFY THIS FILE
-*/
-
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
@@ -16,7 +9,7 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 @SuppressWarnings("unused")
-@TeleOp(name = "Reference Teleop", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
+@TeleOp(name = "Turret", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
 public class TurretOpMode extends OpMode {
 
     private ElapsedTime clock = new ElapsedTime();
@@ -83,11 +76,11 @@ public class TurretOpMode extends OpMode {
             if (gamepad1.b){
                 drive.moveTo(0,0,0);
             }
-            if (gamepad1.left_trigger){
-                servo.runServoTurret(true);
+            if (gamepad1.left_trigger > 0){
+                servo.turn(0.0025);
             }
-            if (gamepad1.right_trigger){
-                servo.runServoTurret(false);
+            if (gamepad1.right_trigger > 0){
+                servo.turn(-0.0025);
             }
         }
         // STATE MACHINE END
