@@ -80,7 +80,7 @@ public class AutoModeR2 extends OpMode {
         }
         if(currentState==State.MOVE2){
             // turret.turn(0.001);
-            if(dirve.moveTo(1090,2380,0)){
+            if(dirve.moveTo(1320,2380,0)){
                 clock.reset();
                 currentState = State.MOVE3;
             }
