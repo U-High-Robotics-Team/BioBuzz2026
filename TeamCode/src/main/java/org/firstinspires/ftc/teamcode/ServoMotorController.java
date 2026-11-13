@@ -9,32 +9,35 @@ import com.qualcomm.robotcore.hardware.ServoController;
 public class ServoMotorController {
     
     // techicaly not its speed, it just is the added position that the servo attempts to reach
-    private double turretSpeed;
+    private final double MAX_SPEED = 0.005;
+    private final double TURN_POS_MAX = 0.95;
+    private final double TURN_POS_MIN = 0.01;
     private Servo servo;
 
     public ServoMotorController(HardwareMap hm, String servoName) {
         servo = hm.get(Servo.class, servoName);
-        servo.setPosition(0.5);
-        turretSpeed = 0.001;
     }
 
-    public void runServoTurret(boolean turnDir) {
-        servo.setPosition(newPos(turnDir));
-        checkDirection();
-    }
-
-    private double newPos(boolean opposite){
-        if (opposite){
-            return servo.getPosition() -turretSpeed;
+    public void turn(double speed) {
+        if(speed > MAX_SPEED){
+            speed = MAX_SPEED;
         }
-        return servo.getPosition() +turretSpeed;
+        if(speed < -MAX_SPEED){
+            speed = -MAX_SPEED;
+        }
+        checkDirection();
+        servo.setPosition(servo.getPosition() + speed);
+    }
+    
+    public void goHome(){
+        servo.setPosition(0.5);
     }
 
     private void checkDirection(){
-        if(servo.getPosition() >= 1.0){
+        if(servo.getPosition() >= TURN_POS_MAX){
             servo.setDirection(Servo.Direction.REVERSE);
         }
-        if(servo.getPosition() <= 0.0){
+        if(servo.getPosition() <= TURN_POS_MIN){
             servo.setDirection(Servo.Direction.FORWARD);
         }
     }
