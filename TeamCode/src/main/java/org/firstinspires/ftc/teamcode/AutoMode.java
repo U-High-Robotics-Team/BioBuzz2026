@@ -20,7 +20,6 @@ public class AutoMode extends OpMode {
     private TransferDriver transfer;
     private MotorSpeedController flywheel;
     private TurretDriver turret;
-    private boolean onlyOnce;
 
     private enum State{
         TURNON,
@@ -38,7 +37,6 @@ public class AutoMode extends OpMode {
         intake = new IntakeDriver(hardwareMap, "intake");
         transfer = new TransferDriver(hardwareMap, "transfer", "feed");
         turret = new TurretDriver(hardwareMap, "flywheel", "turret");
-        onlyOnce = true;
         telemetry.addData("Status", "Init OK");
     }
 
@@ -65,6 +63,7 @@ public class AutoMode extends OpMode {
             transfer.collect();
             intake.run();
             if(clock.seconds() >= 2){
+                clock.reset();
                 currentState = State.MOVEFORWARD;
             }
         }
@@ -73,20 +72,23 @@ public class AutoMode extends OpMode {
                 drive.moveTo(250,0,0);
             }
             if(drive.moveTo(250,0,0)){
+                clock.reset();
+                currentState = State.TURNTURRET;
+            }
+        }
+        if(currentState==State.TURNTURRET){
+            turret.turn(0.0005);
+            if(clock.seconds() >= 10){
+                clock.reset();
                 currentState = State.SHOOT;
             }
         }
         if(currentState==State.SHOOT){
-            if(onlyOnce){
-                clock.reset();
-                onlyOnce = false;
-            }
             transfer.loadTurret();
             turret.setFlywheelRPM(6000);
             // will shoot after 2 seconds
             if(clock.seconds()>=2){
                 currentState = State.STOP;
-                onlyOnce = true;
             } 
         }
         if(currentState==State.STOP){
