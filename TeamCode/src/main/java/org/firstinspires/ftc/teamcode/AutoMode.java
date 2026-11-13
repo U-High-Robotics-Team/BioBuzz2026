@@ -36,7 +36,7 @@ public class AutoMode extends OpMode {
         drive = new MecanumDrive(hardwareMap, loc);
         intake = new IntakeDriver(hardwareMap, "intake");
         transfer = new TransferDriver(hardwareMap, "transfer", "feed");
-        turret = new TurretDriver(hardwareMap, "flywheel", "turret");
+        turret = new TurretDriver(hardwareMap, "flywheel", "turretServo");
         telemetry.addData("Status", "Init OK");
     }
 
@@ -64,28 +64,29 @@ public class AutoMode extends OpMode {
             intake.run();
             if(clock.seconds() >= 2){
                 clock.reset();
+                turret.resetTurretPos();
                 currentState = State.MOVEFORWARD;
             }
         }
         if(currentState==State.MOVEFORWARD){
-            if(!drive.moveTo(250,0,0)){
-                drive.moveTo(250,0,0);
+            if(!drive.moveTo(250,10,0.5)){
+                drive.moveTo(250,10,0.5);
             }
-            if(drive.moveTo(250,0,0)){
+            if(drive.moveTo(250,10,0.5)){
                 clock.reset();
                 currentState = State.TURNTURRET;
             }
         }
         if(currentState==State.TURNTURRET){
-            turret.turn(0.0005);
-            if(clock.seconds() >= 10){
+            turret.turn(0.001);
+            if(clock.seconds() >= 5){
                 clock.reset();
                 currentState = State.SHOOT;
             }
         }
         if(currentState==State.SHOOT){
             transfer.loadTurret();
-            turret.setFlywheelRPM(6000);
+            turret.startFlywheel();
             // will shoot after 2 seconds
             if(clock.seconds()>=2){
                 currentState = State.STOP;
@@ -94,7 +95,7 @@ public class AutoMode extends OpMode {
         if(currentState==State.STOP){
             intake.stop();
             transfer.off();
-            turret.setFlywheelRPM(0);
+            turret.stopFlywheel();
         }
     }
 }
