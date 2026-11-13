@@ -16,7 +16,6 @@ public class ServoMotorController {
 
     public ServoMotorController(HardwareMap hm, String servoName) {
         servo = hm.get(Servo.class, servoName);
-        servo.setPosition(0.5);
     }
 
     public void turn(double speed) {
@@ -28,6 +27,10 @@ public class ServoMotorController {
         }
         checkDirection();
         servo.setPosition(servo.getPosition() + speed);
+    }
+    
+    public void goHome(){
+        servo.setPosition(0.5);
     }
 
     private void checkDirection(){
