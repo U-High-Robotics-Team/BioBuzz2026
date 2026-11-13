@@ -21,9 +21,11 @@ public class AutoMode extends OpMode {
     private TransferDriver transfer;
     private MotorSpeedController flywheel;
     private TurretDriver turret;
+    private final int DELAY_TIME = 15; // delay for robot in seconds until we start to do tasks, ONLY used for AutoBD or AutoRD auto modes
 
     private enum State{
         TURNON,
+        DELAY,
         MOVEFORWARD,
         SHOOT,
         TURNTURRET,
@@ -69,6 +71,9 @@ public class AutoMode extends OpMode {
                 turret.resetTurretPos();
                 currentState = State.MOVEFORWARD;
             }
+        }
+        if(currentState==State.DELAY){
+            // Add wait if method usind DELAY_TIME 
         }
         if(currentState==State.MOVEFORWARD){
             if(drive.moveTo(250,10,0.5)){
