@@ -9,6 +9,7 @@ import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
+// Remember to always reset clock @ end of specific state if you want timed events (unless you want to do more math)
 @Autonomous
 public class AutoMode extends OpMode {
 
@@ -26,6 +27,7 @@ public class AutoMode extends OpMode {
         MOVEFORWARD,
         SHOOT,
         TURNTURRET,
+        PARK,
         STOP
     }
 
@@ -69,13 +71,11 @@ public class AutoMode extends OpMode {
             }
         }
         if(currentState==State.MOVEFORWARD){
-            if(!drive.moveTo(250,10,0.5)){
-                drive.moveTo(250,10,0.5);
-            }
             if(drive.moveTo(250,10,0.5)){
                 clock.reset();
                 currentState = State.TURNTURRET;
             }
+            
         }
         if(currentState==State.TURNTURRET){
             turret.turn(0.001);
@@ -89,8 +89,15 @@ public class AutoMode extends OpMode {
             turret.startFlywheel();
             // will shoot after 2 seconds
             if(clock.seconds()>=2){
-                currentState = State.STOP;
+                clock.reset();
+                currentState = State.PARK;
             } 
+        }
+        if(currentState==State.PARK){
+            if(drive.moveTo(0,100,0)){ // Goes to parking area
+                clock.reset();
+                currentState = State.STOP;
+            }
         }
         if(currentState==State.STOP){
             intake.stop();
@@ -99,4 +106,3 @@ public class AutoMode extends OpMode {
         }
     }
 }
-
