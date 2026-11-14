@@ -8,6 +8,7 @@
 package org.firstinspires.ftc.teamcode;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.Servo;
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.DistanceUnit;
 import org.firstinspires.ftc.robotcore.external.State;
@@ -16,15 +17,16 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 @SuppressWarnings("unused")
-@TeleOp(name = "Reference Teleop", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
-public class ReferenceOpmode extends OpMode {
+@TeleOp(name = "FullManualOpmode", group = "Testing") // on the DS, opmodes are sorted by gorup, then name
+public class FullManualOpmode extends OpMode {
 
     private ElapsedTime clock = new ElapsedTime();
     private MecanumDrive drive;
     private Localizer loc;
     private IntakeDriver intake;
-    private MotorPowerController turret;
+    private MotorPowerController flywheel;
     private TransferDriver transfer;
+    private ServoMotorController turret;
     private State currentState;
     private enum State {
         STOP,
@@ -40,8 +42,9 @@ public class ReferenceOpmode extends OpMode {
         loc = new Localizer(hardwareMap, "gbpoc");
         drive = new MecanumDrive(hardwareMap, loc);
         intake = new IntakeDriver(hardwareMap, "intake");
-        turret = new MotorPowerController(hardwareMap, "turret");
+        flywheel = new MotorPowerController(hardwareMap, "flywheel");
         transfer = new TransferDriver(hardwareMap, "transfer", "feed");
+        turret = new ServoMotorController(hardwareMap, "turret");
         currentState = State.STOP;
         // Tell the driver that initialization is complete.
         telemetry.addData("Status", "Init OK");
@@ -79,22 +82,23 @@ public class ReferenceOpmode extends OpMode {
         if (currentState == State.STOP){
 
             if(gamepad1.a) {
-                currentState == State.COLLECT;
+                currentState = State.COLLECT;
             }
             drive.move(x,y,r);
             intake.stop();
             transfer.off();
+            flywheel.setPower(0);
 
         } else if (currentState == State.COLLECT){
 
             if(gamepad2.a) {
-                currentState == State.SHOOT;
+                currentState = State.SHOOT;
             }
             if(gamepad1.x) {
-                currentState == State.STOP;
+                currentState = State.STOP;
             }
             if(gamepad1.b) {
-                currentState == State.REVERSE;
+                currentState = State.REVERSE;
             }
             drive.move(x, y, r);
             intake.run();
@@ -103,10 +107,10 @@ public class ReferenceOpmode extends OpMode {
         } else if (currentState == State.REVERSE) {
 
             if(gamepad1.x) {
-                currentState == State.STOP;
+                currentState = State.STOP;
             }
             if(gamepad1.a) {
-                currentState == State.COLLECT;
+                currentState = State.COLLECT;
             }
             drive.move(x,y,r);
             intake.reverse();
@@ -115,14 +119,14 @@ public class ReferenceOpmode extends OpMode {
         } else if (currentState == State.SHOOT) {
 
             if(gamepad1.x) {
-                currentState == State.STOP;
+                currentState = State.STOP;
             }
             if(gamepad1.a) {
-                currentState == State.COLLECT;
+                currentState = State.COLLECT;
             }
             drive.move(x,y,r);
             transfer.loadTurret();
-            turret.setPower(0.75);
+            flywheel.setPower(0.75);
             
         }
         // STATE MACHINE END
