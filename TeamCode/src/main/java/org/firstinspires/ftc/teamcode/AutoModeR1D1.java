@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 // Remember to always reset clock @ end of specific state if you want timed events (unless you want to do more math)
 @Autonomous
-public class AutoModeR1D1 extends OpMode {
+public class AutoModeR1 extends OpMode {
 
     private ElapsedTime clock = new ElapsedTime();
     private State currentState;
@@ -54,7 +54,6 @@ public class AutoModeR1D1 extends OpMode {
     @Override
     public void start() {
         clock.reset();
-        turret.resetTurretPos();
     }
 
     public void loop(){
@@ -67,6 +66,7 @@ public class AutoModeR1D1 extends OpMode {
         String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
         telemetry.addData("Position",position);
         if(currentState==State.TURNON){
+            turret.resetTurretPos();
             transfer.collect();
             intake.run();
             if(clock.seconds() >= 2){
@@ -76,45 +76,39 @@ public class AutoModeR1D1 extends OpMode {
             }
         }
         if(currentState==State.DELAY) {
-            if(clock.seconds >= 15){
-                 clock.reset();
-                 currentState = State.MOVEFORWARD;
-	        }
-
+            if(clock.seconds() >= 13) {
+                clock.reset();
+                currentState = State.MOVEFORWARD;
+            }
         }
         if(currentState==State.MOVEFORWARD){
-            drive.moveTo(1320,0,0);
-            if(clock.seconds() >= 5){
-                clock.reset();
-                currentState = State.TURNTURRET;
-            }
-            
-        }
-        if(currentState==State.TURNTURRET){
+            drive.moveTo(1320,-100,0);
             turret.turn(0.001);
-            if(clock.seconds() >= 0.85){
+            turret.startFlywheel();
+            if(clock.seconds() >= 4){
                 clock.reset();
                 currentState = State.SHOOT;
             }
+            
         }
         if(currentState==State.SHOOT){
             transfer.loadTurret();
             turret.startFlywheel();
-            // will shoot after 2 seconds
-            if(clock.seconds()>=2){
+            // will shoot after 3 seconds
+            if(clock.seconds()>=3){
                 clock.reset();
                 currentState = State.MOVEBACKWARD;
             } 
         }
         if(currentState==State.MOVEBACKWARD){
-            drive.moveTo(80,0,0);
-            if(clock.seconds() >= 5){ // Goes to parking area
+            drive.moveTo(220,0,0);
+            if(clock.seconds() >= 2){ // Goes to parking area
                 clock.reset();
                 currentState = State.PARK;
             }
         }
         if(currentState==State.PARK) {
-           drive.moveTo(20,1000,0);
+           drive.moveTo(20,1500,0);
            if(clock.seconds() >= 4) {
                 clock.reset();
                 currentState = State.STOP;
@@ -127,4 +121,3 @@ public class AutoModeR1D1 extends OpMode {
         }
     }
 }
-

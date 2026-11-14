@@ -37,9 +37,9 @@ public class AutoModeR1 extends OpMode {
         currentState = State.TURNON;
         loc = new Localizer(hardwareMap, "gbpoc");
         drive = new MecanumDrive(hardwareMap, loc);
-       // intake = new IntakeDriver(hardwareMap, "intake");
-       // transfer = new TransferDriver(hardwareMap, "transfer", "feed");
-       // turret = new TurretDriver(hardwareMap, "flywheel", "turretServo");
+        intake = new IntakeDriver(hardwareMap, "intake");
+        transfer = new TransferDriver(hardwareMap, "transfer", "feed");
+        turret = new TurretDriver(hardwareMap, "flywheel", "turretServo");
         telemetry.addData("Status", "Init OK");
         telemetry.addData("Current State", currentState);
         
@@ -53,7 +53,6 @@ public class AutoModeR1 extends OpMode {
     @Override
     public void start() {
         clock.reset();
-//turret.resetTurretPos();
     }
 
     public void loop(){
@@ -66,56 +65,52 @@ public class AutoModeR1 extends OpMode {
         String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
         telemetry.addData("Position",position);
         if(currentState==State.TURNON){
-          //  transfer.collect();
-          //  intake.run();
+            turret.resetTurretPos();
+            transfer.collect();
+            intake.run();
             if(clock.seconds() >= 2){
                 clock.reset();
-            //    turret.resetTurretPos();
+                turret.resetTurretPos();
                 currentState = State.MOVEFORWARD;
             }
         }
         if(currentState==State.MOVEFORWARD){
-            drive.moveTo(1320,0,0);
-            if(clock.seconds() >= 5){
-                clock.reset();
-                currentState = State.TURNTURRET;
-            }
-            
-        }
-        if(currentState==State.TURNTURRET){
-           // turret.turn(0.001);
-            if(clock.seconds() >= 0.85){
+            drive.moveTo(1320,-100,0);
+            turret.turn(0.001);
+            turret.startFlywheel();
+            if(clock.seconds() >= 4){
                 clock.reset();
                 currentState = State.SHOOT;
             }
+            
         }
         if(currentState==State.SHOOT){
-          //  transfer.loadTurret();
-         //   turret.startFlywheel();
-            // will shoot after 2 seconds
-            if(clock.seconds()>=2){
+            transfer.loadTurret();
+            turret.startFlywheel();
+            // will shoot after 3 seconds
+            if(clock.seconds()>=3){
                 clock.reset();
                 currentState = State.MOVEBACKWARD;
             } 
         }
         if(currentState==State.MOVEBACKWARD){
-            drive.moveTo(80,0,0);
-            if(clock.seconds() >= 5){ // Goes to parking area
+            drive.moveTo(220,0,0);
+            if(clock.seconds() >= 2){ // Goes to parking area
                 clock.reset();
                 currentState = State.PARK;
             }
         }
         if(currentState==State.PARK) {
-           drive.moveTo(20,2000,0);
+           drive.moveTo(20,1500,0);
            if(clock.seconds() >= 4) {
                 clock.reset();
                 currentState = State.STOP;
            }
         }
         if(currentState==State.STOP){
-         //   intake.stop();
-         //   transfer.off();
-         //   turret.stopFlywheel();
+            intake.stop();
+            transfer.off();
+            turret.stopFlywheel();
         }
     }
 }
