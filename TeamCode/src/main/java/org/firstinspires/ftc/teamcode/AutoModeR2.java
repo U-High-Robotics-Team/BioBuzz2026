@@ -67,32 +67,32 @@ public class AutoModeR2 extends OpMode {
             transfer.collect();
             intake.run();
             if(clock.seconds() >= 2){
-                clock.reset();
                 turret.resetTurretPos();
+                clock.reset();
                 currentState = State.MOVE1;
             }
         }
         if(currentState==State.MOVE1){
-            if(drive.moveTo(20,2380,0)){
+            if(drive.moveTo(20,-2380,0)||clock.seconds()>2){
                 clock.reset();
                 currentState = State.MOVE2;
             }
         }
         if(currentState==State.MOVE2){
-            // turret.turn(0.001);
-            if(dirve.moveTo(1320,2380,0)){
+            turret.turn(0.001);
+            if(drive.moveTo(1320,-2380,0)||clock.seconds()>1){
                 clock.reset();
                 currentState = State.MOVE3;
             }
         }
         if(currentState==State.MOVE3){
-            if(drive.moveTo(20,2380,0)){
+            if(drive.moveTo(20,-2380,0)||clock.seconds()>1){
                 clock.reset();
                 currentState = State.MOVE4;
             }
         }
         if(currentState==State.MOVE4){
-            if(drive.moveTo(0,1600,0)){ // Goes to parking area
+            if(drive.moveTo(0,-1000,0)||clock.seconds()>2.5){ // Goes to parking area
                 clock.reset();
                 currentState = State.STOP;
             }
