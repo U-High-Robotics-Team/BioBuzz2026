@@ -64,28 +64,38 @@ public class AutoModeR2 extends OpMode {
         String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
         telemetry.addData("Position",position);
         if(currentState==State.TURNON){
+            turret.resetTurretPos();
             transfer.collect();
             intake.run();
-            if(clock.seconds() >= 2){
+            if(clock.seconds() >= .5){
                 turret.resetTurretPos();
                 clock.reset();
                 currentState = State.MOVE1;
             }
         }
         if(currentState==State.MOVE1){
+            intake.run();
+            transfer.collect();
+
             if(drive.moveTo(20,-2380,0)||clock.seconds()>2){
                 clock.reset();
                 currentState = State.MOVE2;
             }
         }
         if(currentState==State.MOVE2){
-            turret.turn(0.001);
+            intake.run();
+            transfer.collect();
+            turret.turn(0.002);
             if(drive.moveTo(1320,-2380,0)||clock.seconds()>1){
+                turret.startFlywheel();
                 clock.reset();
                 currentState = State.MOVE3;
             }
         }
         if(currentState==State.MOVE3){
+            intake.run();
+            turret.startFlywheel();
+            tranfser.loadTurret();
             if(drive.moveTo(20,-2380,0)||clock.seconds()>1){
                 clock.reset();
                 currentState = State.MOVE4;

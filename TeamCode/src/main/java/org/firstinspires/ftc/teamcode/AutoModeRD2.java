@@ -11,7 +11,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.Pose2D;
 
 // Remember to always reset clock @ end of specific state if you want timed events (unless you want to do more math)
 @Autonomous
-public class AutoModeR2 extends OpMode {
+public class AutoModeRD2 extends OpMode {
 
     private ElapsedTime clock = new ElapsedTime();
     private State currentState;
@@ -64,9 +64,10 @@ public class AutoModeR2 extends OpMode {
         String position = String.format("x=%6d  y=%6d  r=%6d", currX, currY, theta);
         telemetry.addData("Position",position);
         if(currentState==State.TURNON){
+            turret.resetTurretPos();
             transfer.collect();
             intake.run();
-            if(clock.seconds() >= 2){
+            if(clock.seconds() >= .1){
                 turret.resetTurretPos();
                 clock.reset();
                 currentState = State.DELAY;
@@ -75,23 +76,32 @@ public class AutoModeR2 extends OpMode {
         if(currentState==State.DELAY){
             if(clock.seconds()>DELAY_TIME){
                 clock.reset();
-                currentState=State.MOVE1
+                currentState = State.MOVE1;
             }
         }
         if(currentState==State.MOVE1){
+            intake.run();
+            transfer.collect();
+
             if(drive.moveTo(20,-2380,0)||clock.seconds()>2){
                 clock.reset();
                 currentState = State.MOVE2;
             }
         }
         if(currentState==State.MOVE2){
-            turret.turn(0.001);
+            intake.run();
+            transfer.collect();
+            turret.turn(0.002);
             if(drive.moveTo(1320,-2380,0)||clock.seconds()>1){
+                turret.startFlywheel();
                 clock.reset();
                 currentState = State.MOVE3;
             }
         }
         if(currentState==State.MOVE3){
+            intake.run();
+            turret.startFlywheel();
+            tranfser.loadTurret();
             if(drive.moveTo(20,-2380,0)||clock.seconds()>1){
                 clock.reset();
                 currentState = State.MOVE4;
