@@ -43,7 +43,7 @@ public class TransferDriver {
     }
 
     // returns number of balls in transfer system
-    //TODO finish method using camera vision (likely Husky lenses) 
+    //TODO finish method using camera vision (likely Husky lenses)
     public int getNumberOfBalls(){
         return -1;
     }
