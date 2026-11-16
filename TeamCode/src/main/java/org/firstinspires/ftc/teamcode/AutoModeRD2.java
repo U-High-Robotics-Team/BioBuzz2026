@@ -30,6 +30,7 @@ public class AutoModeRD2 extends OpMode {
         MOVE2,
         MOVE3,
         MOVE4,
+        MOVE5,
         STOP
     }
 
@@ -83,7 +84,7 @@ public class AutoModeRD2 extends OpMode {
             intake.run();
             transfer.collect();
 
-            if(drive.moveTo(20,-2380,0)||clock.seconds()>2){
+            if(drive.moveTo(50,-1000,0)||clock.seconds()>2){
                 clock.reset();
                 currentState = State.MOVE2;
             }
@@ -92,7 +93,7 @@ public class AutoModeRD2 extends OpMode {
             intake.run();
             transfer.collect();
             turret.turn(0.002);
-            if(drive.moveTo(1320,-2380,0)||clock.seconds()>1){
+            if(drive.moveTo(50,-2380,0)||clock.seconds()>1){
                 turret.startFlywheel();
                 clock.reset();
                 currentState = State.MOVE3;
@@ -102,12 +103,18 @@ public class AutoModeRD2 extends OpMode {
             intake.run();
             turret.startFlywheel();
             tranfser.loadTurret();
-            if(drive.moveTo(20,-2380,0)||clock.seconds()>1){
+            if(drive.moveTo(1320,-2380,0)||clock.seconds()>1){
                 clock.reset();
                 currentState = State.MOVE4;
             }
         }
         if(currentState==State.MOVE4){
+            if(drive.moveTo(50,-2380,0)||clock.seconds()>2.5){ // Goes to parking area
+                clock.reset();
+                currentState = State.MOVE5;
+            }
+        }
+        if(currentState==State.MOVE5){
             if(drive.moveTo(0,-1000,0)||clock.seconds()>2.5){ // Goes to parking area
                 clock.reset();
                 currentState = State.STOP;
