@@ -26,6 +26,10 @@ public class TransferDriver {
         this.feedMotor.setRPM(312);
     }
 
+    public void reverseOnlyTransferMotor(){
+        this.transferMotor.setRPM(-150);
+        this.feedMotor.setRPM(-312);
+    }
     // makes all motors in transfer system to turn off
     public void off(){
         this.transferMotor.setRPM(0);
@@ -39,13 +43,13 @@ public class TransferDriver {
     }
 
     // returns number of balls in transfer system
-    //TODO finish method using camera vision (likely Husky lenses) 
+    //TODO finish method using camera vision (likely Husky lenses)
     public int getNumberOfBalls(){
         return -1;
     }
 
     // tells driver if balls are in tranfser system
-    private boolean ballReady(){
+    public boolean ballReady(){
         if(getNumberOfBalls() >= 1){
             return true;
         }else {
